@@ -9,14 +9,18 @@ export const metadata: Metadata = {
   description: "Next.js + Clerk + Tailwind App",
 };
 
+import { ClerkProvider } from "@clerk/nextjs";
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className={`${inter.className} h-full antialiased`}>{children}</body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className="h-full">
+        <body className={`${inter.className} h-full antialiased`}>{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Assignment Fullstack - AI Workflow Editor
 
-## Getting Started
+A Next.js 16 application featuring secure authentication and an infinite canvas for AI workflows.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+*   **Next.js 16 (App Router)**: Modern React architecture with Server Components.
+*   **Clerk Authentication**: Robust, secure Sign-In/Sign-Up flows.
+    *   Protected Dashboard routes.
+    *   Public Landing page.
+*   **React Flow Canvas**:
+    *   Interactive Drag-and-Drop nodes.
+    *   Infinite panning and zooming.
+    *   Custom controls and background.
+*   **Tailwind CSS 4**: High-performance, utility-first styling.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+*   **Framework**: Next.js 16
+*   **Language**: TypeScript
+*   **Auth**: Clerk
+*   **UI Library**: React Flow (`@xyflow/react`)
+*   **Icons**: Lucide React
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🏃‍♂️ Getting Started
 
-## Learn More
+1.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+2.  **Environment Setup**
+    Ensure `.env.local` is populated with your Clerk keys:
+    ```env
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+    CLERK_SECRET_KEY=sk_test_...
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3.  **Run Development Server**
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📂 Project Structure
 
-## Deploy on Vercel
+*   `src/app/(public)`: Public routes (Landing page).
+*   `src/app/(auth)`: Authentication routes (Sign In/Up).
+*   `src/app/dashboard`: Protected application area.
+*   `src/components`: Reusable UI components (Canvas, Sidebar).
+*   `src/middleware.ts`: Edge-layer route protection.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧪 Verification
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*   **Auth**: Try accessing `/dashboard` without logging in -> Redirects to Sign In.
+*   **Canvas**: Log in -> Dashboard. Try dragging the nodes on the canvas.
