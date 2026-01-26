@@ -22,7 +22,7 @@ export const TextNode = ({ selected }: NodeProps) => {
                 />
 
                 <div className="pt-2 border-t border-slate-100">
-                    <OutputHandle id="text-out" label="output" />
+                    <OutputHandle id="text" label="text" />
                 </div>
             </div>
         </BaseNode>
