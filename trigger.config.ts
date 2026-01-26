@@ -1,8 +1,9 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
 
 export default defineConfig({
-    project: process.env.TRIGGER_PROJECT_ID!,
+    project: process.env.TRIGGER_PROJECT_ID || "proj_xmwuwovckgkydvpsnxcd",
     maxDuration: 300, // 5 minutes default
+    dirs: ["./src/trigger"], // Explicitly specify trigger directory
     retries: {
         enabledInDev: true,
         default: {

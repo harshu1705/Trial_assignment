@@ -87,12 +87,85 @@ const Flow = () => {
         [screenToFlowPosition, setNodes]
     );
 
+    const pollRunStatus = async (runId: string) => {
+        const maxAttempts = 60; // 5 minutes max (5s intervals)
+        let attempts = 0;
+
+        const poll = async () => {
+            if (attempts >= maxAttempts) {
+                console.log("Polling timeout - workflow may still be running");
+                setIsRunning(false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/execute/${runId}`);
+                const data = await response.json();
+
+                console.log("Run status:", data.status);
+
+                // Update node states if we have node status data
+                if (data.output?.nodeStatus) {
+                    const nodeStatusMap = data.output.nodeStatus;
+                    setNodes((nds) =>
+                        nds.map((n) => ({
+                            ...n,
+                            data: {
+                                ...n.data,
+                                status: nodeStatusMap[n.id] || 'idle'
+                            },
+                        }))
+                    );
+                }
+
+                if (data.isCompleted || data.isFailed) {
+                    // Execution finished
+                    if (data.isFailed) {
+                        alert(`Workflow failed: ${data.error || 'Unknown error'}`);
+                        // Mark all nodes as error if no specific status
+                        if (!data.output?.nodeStatus) {
+                            setNodes((nds) =>
+                                nds.map((n) => ({
+                                    ...n,
+                                    data: { ...n.data, status: 'error' },
+                                }))
+                            );
+                        }
+                    } else {
+                        console.log("Workflow completed successfully!", data.output);
+                    }
+
+                    setIsRunning(false);
+                    return;
+                }
+
+                // Still running, poll again
+                attempts++;
+                setTimeout(poll, 2000); // Poll every 2 seconds for faster feedback
+
+            } catch (error: any) {
+                console.error("Failed to poll status:", error);
+                setIsRunning(false);
+            }
+        };
+
+        poll();
+    };
+
     const handleRunWorkflow = async () => {
         if (isRunning) return;
         setIsRunning(true);
 
+        // Set all nodes to running state initially
+        setNodes((nds) =>
+            nds.map((n) => ({
+                ...n,
+                data: { ...n.data, status: 'running' },
+            }))
+        );
+
         try {
-            // Call the API endpoint instead of running locally
+            // Call the API endpoint to trigger execution
             const response = await fetch('/api/execute', {
                 method: 'POST',
                 headers: {
@@ -109,14 +182,21 @@ const Flow = () => {
 
             console.log('Workflow triggered successfully:', data.runId);
 
-            // TODO: Poll for status updates using runId
-            // For now, just show success
-            alert(`Workflow started! Run ID: ${data.runId}`);
+            // Start polling for status updates
+            pollRunStatus(data.runId);
 
         } catch (error: any) {
             console.error("Workflow failed", error);
             alert(`Error: ${error.message}`);
-        } finally {
+
+            // Mark all nodes as error
+            setNodes((nds) =>
+                nds.map((n) => ({
+                    ...n,
+                    data: { ...n.data, status: 'error' },
+                }))
+            );
+
             setIsRunning(false);
         }
     };

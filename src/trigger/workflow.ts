@@ -6,30 +6,45 @@ export const workflowTask = task({
     id: "workflow-task",
     maxDuration: 600, // 10 minutes
     run: async (payload: { nodes: Node[]; edges: Edge[] }) => {
-        console.log("Starting workflow execution...");
-        console.log(`Received ${payload.nodes.length} nodes and ${payload.edges.length} edges.`);
+        console.log("🚀 Starting workflow execution...");
+        console.log(`📊 Received ${payload.nodes.length} nodes and ${payload.edges.length} edges.`);
+
+        // Track node status
+        const nodeStatus: Record<string, 'idle' | 'running' | 'completed' | 'error'> = {};
+        payload.nodes.forEach(node => {
+            nodeStatus[node.id] = 'idle';
+        });
 
         try {
             // Run the deterministic engine
-            // In this phase, we are running the whole graph in one task.
-            // In future phases, we might split nodes into sub-tasks.
             const context = await runWorkflow(payload.nodes, payload.edges, (nodeId, status) => {
-                console.log(`[${nodeId}] status: ${status}`);
+                console.log(`[${nodeId}] ➡️ ${status}`);
+                nodeStatus[nodeId] = status;
             });
 
-            console.log("Workflow execution complete.");
+            console.log("✅ Workflow execution complete.");
 
             // Return the serializable parts of the context
             return {
                 success: true,
                 executionId: context.executionId,
                 results: Object.fromEntries(context.nodeResults),
-                logs: context.logs
+                logs: context.logs,
+                nodeStatus, // Per-node status for UI
+                nodesExecuted: context.logs.filter(l => l.message.includes('Executing')).length
             };
 
         } catch (error: any) {
-            console.error("Workflow failed:", error);
-            throw error;
+            console.error("❌ Workflow failed:", error);
+
+            // Return structured error response
+            return {
+                success: false,
+                error: error.message || "Unknown error occurred",
+                stack: error.stack,
+                failedAt: new Date().toISOString(),
+                nodeStatus // Include partial status even on failure
+            };
         }
     },
 });

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/trigger/test-job.ts"],
+  "sourcesContent": ["import { task } from \"@trigger.dev/sdk/v3\";\r\n\r\nexport const testTask = task({\r\n    id: \"test-task\",\r\n    // Set an optional maxDuration to prevent it from running indefinitely\r\n    maxDuration: 300,\r\n    run: async (payload: { message: string }) => {\r\n        console.log(\"Hello from Trigger.dev!\");\r\n        console.log(\"Payload:\", payload);\r\n\r\n        return {\r\n            message: `Received: ${payload.message}`,\r\n            timestamp: new Date().toISOString(),\r\n        };\r\n    },\r\n});\r\n"],
+  "mappings": ";;;;;;;;;AAAA;AAEO,IAAM,WAAW,KAAK;AAAA,EACzB,IAAI;AAAA;AAAA,EAEJ,aAAa;AAAA,EACb,KAAK,8BAAO,YAAiC;AACzC,YAAQ,IAAI,yBAAyB;AACrC,YAAQ,IAAI,YAAY,OAAO;AAE/B,WAAO;AAAA,MACH,SAAS,aAAa,QAAQ,OAAO;AAAA,MACrC,YAAW,oBAAI,KAAK,GAAE,YAAY;AAAA,IACtC;AAAA,EACJ,GARK;AAST,CAAC;",
+  "names": []
+}
