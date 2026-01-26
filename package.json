@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.9",
+    "@google/generative-ai": "^0.24.1",
     "@trigger.dev/sdk": "4.3.3",
     "@xyflow/react": "^12.10.0",
     "clsx": "^2.1.1",

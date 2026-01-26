@@ -1,8 +1,12 @@
 import { ExecutableNode } from "./types";
-import { DebugNodeExecutor } from "./nodes/DebugNodeExecutor";
 import { TextNodeExecutor } from "./nodes/TextNodeExecutor";
+import { DebugNodeExecutor } from "./nodes/DebugNodeExecutor";
+import { LLMNodeExecutor } from "./nodes/LLMNodeExecutor";
+import { VisionNodeExecutor } from "./nodes/VisionNodeExecutor";
 
 export const executorRegistry: Record<string, new () => ExecutableNode> = {
-    "debug": DebugNodeExecutor,
-    "text": TextNodeExecutor,
+    text: TextNodeExecutor,
+    debug: DebugNodeExecutor,
+    llm: LLMNodeExecutor,
+    vision: VisionNodeExecutor,
 };

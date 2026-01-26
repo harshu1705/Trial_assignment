@@ -1,6 +1,6 @@
 "use client";
 
-import { CaseSensitive, Bug } from "lucide-react";
+import { CaseSensitive, Bug, Sparkles, Eye } from "lucide-react";
 
 export const NodesSidebar = () => {
     const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -9,7 +9,7 @@ export const NodesSidebar = () => {
     };
 
     return (
-        <aside className="w-[200px] h-full bg-white border-r border-slate-200 p-4 flex flex-col space-y-4 shadow-sm z-10 shrink-0">
+        <aside className="w-[200px] h-full bg-white border-r border-slate-200 p-4 flex flex-col space-y-4 shadow-sm z-10 shrink-0 overflow-y-auto">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">
                 Nodes
             </h2>
@@ -25,6 +25,34 @@ export const NodesSidebar = () => {
                 <div className="flex flex-col">
                     <span className="text-sm font-medium text-slate-700">Text Node</span>
                     <span className="text-[10px] text-slate-400">Input source</span>
+                </div>
+            </div>
+
+            <div
+                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-purple-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
+                onDragStart={(event) => onDragStart(event, "llm")}
+                draggable
+            >
+                <div className="p-2 bg-purple-50 text-purple-600 rounded-md">
+                    <Sparkles className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-700">LLM Node</span>
+                    <span className="text-[10px] text-slate-400">AI generation</span>
+                </div>
+            </div>
+
+            <div
+                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-blue-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
+                onDragStart={(event) => onDragStart(event, "vision")}
+                draggable
+            >
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-md">
+                    <Eye className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-700">Vision Node</span>
+                    <span className="text-[10px] text-slate-400">Image analysis</span>
                 </div>
             </div>
 
