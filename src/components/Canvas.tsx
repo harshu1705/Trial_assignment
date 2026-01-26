@@ -12,17 +12,11 @@ import {
     Connection,
     Edge,
     Node,
-    NodeTypes,
 } from "@xyflow/react";
-import { DebugNode } from "./nodes/DebugNode";
-import { TextNode } from "./nodes/TextNode";
+import { nodeRegistry } from "./nodes/nodeRegistry";
 
 import "@xyflow/react/dist/style.css";
 
-const nodeTypes: NodeTypes = {
-    debug: DebugNode,
-    text: TextNode,
-};
 
 const initialNodes: Node[] = [
     {
@@ -64,7 +58,7 @@ export const Canvas = () => {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
-                nodeTypes={nodeTypes}
+                nodeTypes={nodeRegistry}
                 fitView
             >
                 <Background />

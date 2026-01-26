@@ -13,7 +13,8 @@ export const BaseNode = ({ title, icon, children, selected }: BaseNodeProps) => 
         <div
             className={cn(
                 "w-[300px] bg-white rounded-xl shadow-sm border border-slate-200 transition-all duration-200",
-                selected && "ring-2 ring-emerald-500 border-emerald-500 shadow-md"
+                "hover:border-slate-300 hover:shadow-md",
+                selected && "ring-2 ring-emerald-500 border-emerald-500 shadow-md ring-offset-2"
             )}
         >
             {/* Header */}
