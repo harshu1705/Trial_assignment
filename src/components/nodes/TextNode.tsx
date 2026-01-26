@@ -26,6 +26,7 @@ export const TextNode = ({ selected, data }: NodeProps) => {
             title="Text"
             icon={<CaseSensitive className="w-4 h-4" />}
             selected={selected}
+            status={data.status as 'idle' | 'running' | 'completed' | 'error'}
         >
             <div className="flex flex-col space-y-4">
                 <div className="relative">

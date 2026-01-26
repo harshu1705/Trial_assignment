@@ -1,20 +1,26 @@
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-interface BaseNodeProps {
+export interface BaseNodeProps {
     title: string;
-    icon: ReactNode;
-    children?: ReactNode;
+    icon: React.ReactNode;
+    children: React.ReactNode;
     selected?: boolean;
+    status?: 'idle' | 'running' | 'completed' | 'error';
 }
 
-export const BaseNode = ({ title, icon, children, selected }: BaseNodeProps) => {
+export const BaseNode = ({ title, icon, children, selected, status = 'idle' }: BaseNodeProps) => {
     return (
         <div
             className={cn(
                 "w-[300px] bg-white rounded-xl shadow-sm border border-slate-200 transition-all duration-200",
                 "hover:border-slate-300 hover:shadow-md",
-                selected && "ring-2 ring-emerald-500 border-emerald-500 shadow-md ring-offset-2"
+                selected && "ring-2 ring-emerald-500 border-emerald-500 shadow-md ring-offset-2",
+
+                // Status styles
+                status === 'running' && "ring-2 ring-amber-400 border-amber-400 shadow-lg ring-offset-2",
+                status === 'completed' && "ring-2 ring-blue-500 border-blue-500 shadow-md ring-offset-2",
+                status === 'error' && "ring-2 ring-red-500 border-red-500 shadow-md ring-offset-2",
             )}
         >
             {/* Header */}

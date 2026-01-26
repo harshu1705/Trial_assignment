@@ -4,12 +4,13 @@ import { NodeProps } from "@xyflow/react";
 import { InputHandle } from "./InputHandle";
 import { OutputHandle } from "./OutputHandle";
 
-export const DebugNode = ({ selected }: NodeProps) => {
+export const DebugNode = ({ selected, data }: NodeProps) => {
     return (
         <BaseNode
-            title="Debug Node"
+            title="Debug"
             icon={<Bug className="w-4 h-4" />}
             selected={selected}
+            status={data.status as 'idle' | 'running' | 'completed' | 'error'}
         >
             <div className="flex flex-col space-y-4">
                 <div className="text-sm text-slate-600">

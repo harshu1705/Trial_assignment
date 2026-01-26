@@ -1,8 +1,19 @@
-export type ExecutionContext = {
-    // Dictionary for storing variable values, inputs, execution state
-    variables: Record<string, unknown>;
+export type ExecutionLog = {
+    nodeId: string;
+    message: string;
+    timestamp: number;
+};
 
-    // Helper to log messages during execution (for debugging)
+export type ExecutionContext = {
+    executionId: string;
+    // Map of Node ID to their output results
+    // This allows downstream nodes to look up upstream results
+    nodeResults: Map<string, Record<string, unknown>>;
+
+    // Execution logs for debugging
+    logs: ExecutionLog[];
+
+    // Helper to log messages
     log: (nodeId: string, message: string) => void;
 };
 
