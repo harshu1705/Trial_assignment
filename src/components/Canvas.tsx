@@ -12,11 +12,38 @@ import {
     Connection,
     Edge,
     Node,
+    NodeTypes,
 } from "@xyflow/react";
+import { DebugNode } from "./nodes/DebugNode";
+import { TextNode } from "./nodes/TextNode";
 
 import "@xyflow/react/dist/style.css";
 
-const initialNodes: Node[] = [];
+const nodeTypes: NodeTypes = {
+    debug: DebugNode,
+    text: TextNode,
+};
+
+const initialNodes: Node[] = [
+    {
+        id: "1",
+        position: { x: 100, y: 100 },
+        data: { label: "Debug Node 1" },
+        type: "debug",
+    },
+    {
+        id: "2",
+        position: { x: 500, y: 100 },
+        data: { label: "Debug Node 2" },
+        type: "debug",
+    },
+    {
+        id: "3",
+        position: { x: 100, y: 400 },
+        data: { label: "Text Node" },
+        type: "text",
+    },
+];
 
 const initialEdges: Edge[] = []; // No initial connections
 
@@ -37,6 +64,7 @@ export const Canvas = () => {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                nodeTypes={nodeTypes}
                 fitView
             >
                 <Background />
