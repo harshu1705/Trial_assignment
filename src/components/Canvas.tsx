@@ -30,7 +30,7 @@ export const Canvas = () => {
     );
 
     return (
-        <div style={{ width: "100%", height: "100%" }}>
+        <div className="h-full w-full relative">
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -43,6 +43,13 @@ export const Canvas = () => {
                 <Controls />
                 <MiniMap />
             </ReactFlow>
+            {nodes.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                    <p className="text-slate-500 text-lg font-medium opacity-50 select-none">
+                        Drag nodes from the sidebar to start building your workflow
+                    </p>
+                </div>
+            )}
         </div>
     );
 };
