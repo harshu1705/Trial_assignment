@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Canvas } from "@/components/Canvas";
+import { NodesSidebar } from "@/components/NodesSidebar";
 
 export default async function DashboardPage() {
     const { userId } = await auth();
@@ -31,8 +32,11 @@ export default async function DashboardPage() {
                 </div>
             </div>
 
-            <div className="flex-1 min-h-[500px] border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white relative">
-                <Canvas />
+            <div className="flex-1 min-h-[500px] border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white relative flex">
+                <NodesSidebar />
+                <div className="flex-1 h-full relative">
+                    <Canvas />
+                </div>
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
     ReactFlow,
     Background,
@@ -13,11 +13,13 @@ import {
     Edge,
     Node,
     Panel,
+    ReactFlowProvider,
+    useReactFlow,
+    ReactFlowInstance,
 } from "@xyflow/react";
 import { nodeRegistry } from "./nodes/nodeRegistry";
-import { runWorkflow } from "@/lib/execution/engine";
 import { Play } from "lucide-react";
-import { useState } from "react";
+
 
 import "@xyflow/react/dist/style.css";
 
@@ -39,49 +41,88 @@ const initialNodes: Node[] = [
 
 const initialEdges: Edge[] = [];
 
-export const Canvas = () => {
+// Inner component to use ReactFlow hooks
+const Flow = () => {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [isRunning, setIsRunning] = useState(false);
+    const reactFlowWrapper = useRef<HTMLDivElement>(null);
+    const { screenToFlowPosition } = useReactFlow();
 
-    const onConnect = (params: Connection) => {
-        setEdges((eds) => addEdge(params, eds));
-    };
+    const onConnect = useCallback(
+        (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+        [setEdges]
+    );
+
+    const onDragOver = useCallback((event: React.DragEvent) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+    }, []);
+
+    const onDrop = useCallback(
+        (event: React.DragEvent) => {
+            event.preventDefault();
+
+            const type = event.dataTransfer.getData("application/reactflow");
+
+            // Check if the dropped element is valid
+            if (typeof type === "undefined" || !type) {
+                return;
+            }
+
+            const position = screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+            });
+
+            const newNode: Node = {
+                id: crypto.randomUUID(),
+                type,
+                position,
+                data: { label: `${type} node` }, // Basic data
+            };
+
+            setNodes((nds) => nds.concat(newNode));
+        },
+        [screenToFlowPosition, setNodes]
+    );
 
     const handleRunWorkflow = async () => {
         if (isRunning) return;
         setIsRunning(true);
 
         try {
-            await runWorkflow(nodes, edges, (nodeId, status) => {
-                // Determine if we need to update node data or just visual status
-                // For BaseNode, we are passing status as a prop, but here we need to map it to the React Flow node.
-                // React Flow nodes typically take style or className, or data.
-                // However, since our custom nodes use BaseNode, they can read 'data.status' if we put it there,
-                // OR we can use the 'className' or 'style' to inject status.
-
-                // Better approach: Update the node.data.status
-                setNodes((nds) =>
-                    nds.map((n) => {
-                        if (n.id === nodeId) {
-                            return {
-                                ...n,
-                                data: { ...n.data, status },
-                            };
-                        }
-                        return n;
-                    })
-                );
+            // Call the API endpoint instead of running locally
+            const response = await fetch('/api/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ nodes, edges }),
             });
-        } catch (error) {
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to execute workflow');
+            }
+
+            console.log('Workflow triggered successfully:', data.runId);
+
+            // TODO: Poll for status updates using runId
+            // For now, just show success
+            alert(`Workflow started! Run ID: ${data.runId}`);
+
+        } catch (error: any) {
             console.error("Workflow failed", error);
+            alert(`Error: ${error.message}`);
         } finally {
             setIsRunning(false);
         }
     };
 
     return (
-        <div className="h-screen w-full bg-slate-50">
+        <div className="h-full w-full bg-slate-50" ref={reactFlowWrapper}>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -89,6 +130,8 @@ export const Canvas = () => {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 nodeTypes={nodeRegistry}
+                onDrop={onDrop}
+                onDragOver={onDragOver}
                 fitView
             >
                 <Background />
@@ -119,5 +162,15 @@ export const Canvas = () => {
                 </div>
             )}
         </div>
+    );
+};
+
+export const Canvas = () => {
+    return (
+        <ReactFlowProvider>
+            <div className="h-screen w-full">
+                <Flow />
+            </div>
+        </ReactFlowProvider>
     );
 };
