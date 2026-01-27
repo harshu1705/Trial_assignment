@@ -12,42 +12,6 @@ init_esm();
 // src/lib/execution/engine.ts
 init_esm();
 
-// src/lib/execution/ExecutorRegistry.ts
-init_esm();
-
-// src/lib/execution/nodes/TextNodeExecutor.ts
-init_esm();
-var TextNodeExecutor = class {
-  static {
-    __name(this, "TextNodeExecutor");
-  }
-  async execute(input, context) {
-    context.log("text", "Executing Text Node...");
-    const textValue = input.value || "Default Text";
-    context.log("text", `Generated text: "${textValue}"`);
-    return {
-      text: textValue
-    };
-  }
-};
-
-// src/lib/execution/nodes/DebugNodeExecutor.ts
-init_esm();
-var DebugNodeExecutor = class {
-  static {
-    __name(this, "DebugNodeExecutor");
-  }
-  async execute(input, context) {
-    context.log("debug", "Executing Debug Node...");
-    const inputs = Object.entries(input).map(([key, val]) => `${key}: ${val}`).join(", ");
-    context.log("debug", `Received inputs: { ${inputs} }`);
-    return input;
-  }
-};
-
-// src/lib/execution/nodes/LLMNodeExecutor.ts
-init_esm();
-
 // node_modules/@google/generative-ai/dist/index.mjs
 init_esm();
 var SchemaType;
@@ -1123,7 +1087,41 @@ var GoogleGenerativeAI = class {
   }
 };
 
+// src/lib/execution/ExecutorRegistry.ts
+init_esm();
+
+// src/lib/execution/nodes/TextNodeExecutor.ts
+init_esm();
+var TextNodeExecutor = class {
+  static {
+    __name(this, "TextNodeExecutor");
+  }
+  async execute(input, context) {
+    context.log("text", "Executing Text Node...");
+    const textValue = input.value || "Default Text";
+    context.log("text", `Generated text: "${textValue}"`);
+    return {
+      text: textValue
+    };
+  }
+};
+
+// src/lib/execution/nodes/DebugNodeExecutor.ts
+init_esm();
+var DebugNodeExecutor = class {
+  static {
+    __name(this, "DebugNodeExecutor");
+  }
+  async execute(input, context) {
+    context.log("debug", "Executing Debug Node...");
+    const inputs = Object.entries(input).map(([key, val]) => `${key}: ${val}`).join(", ");
+    context.log("debug", `Received inputs: { ${inputs} }`);
+    return input;
+  }
+};
+
 // src/lib/execution/nodes/LLMNodeExecutor.ts
+init_esm();
 var LLMNodeExecutor = class {
   static {
     __name(this, "LLMNodeExecutor");
@@ -1237,6 +1235,27 @@ var getExecutionOrder = /* @__PURE__ */ __name((nodes, edges) => {
   }
   return executionOrder;
 }, "getExecutionOrder");
+async function executeLLMNode({ prompt }) {
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("❌ GEMINI_API_KEY is missing in process.env");
+    throw new Error("GEMINI_API_KEY is not set");
+  }
+  console.log("🔑 GEMINI_API_KEY is present (" + process.env.GEMINI_API_KEY.substring(0, 4) + "...)");
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const validPrompt = prompt && prompt.trim().length > 0 ? prompt : "Hello";
+    console.log(`🤖 Sending prompt to Gemini: "${validPrompt.substring(0, 50)}..."`);
+    const result = await model.generateContent(validPrompt);
+    const text = result.response.text();
+    console.log("✅ Gemini response received length:", text.length);
+    return text;
+  } catch (error) {
+    console.error("❌ Gemini API execution error:", error);
+    throw error;
+  }
+}
+__name(executeLLMNode, "executeLLMNode");
 var runWorkflow = /* @__PURE__ */ __name(async (nodes, edges, onStatusChange) => {
   const executionOrder = getExecutionOrder(nodes, edges);
   const context = {
@@ -1256,6 +1275,37 @@ var runWorkflow = /* @__PURE__ */ __name(async (nodes, edges, onStatusChange) =>
     const node = nodes.find((n) => n.id === nodeId);
     if (!node) continue;
     const nodeType = node.type || "unknown";
+    if (nodeType === "llm") {
+      try {
+        if (onStatusChange) onStatusChange(nodeId, "running");
+        const inputEdges = edges.filter((e) => e.target === nodeId);
+        const inputs = { ...node.data };
+        for (const edge of inputEdges) {
+          const sourceResult = context.nodeResults.get(edge.source);
+          if (sourceResult) {
+            Object.assign(inputs, sourceResult);
+          }
+        }
+        const prompt = inputs.text || inputs.prompt || "";
+        context.log(nodeId, `Executing LLM Node with prompt: "${prompt.substring(0, 50)}..."`);
+        const geminiText = await executeLLMNode({
+          prompt
+        });
+        context.log(nodeId, `Generated ${geminiText.length} characters`);
+        context.nodeResults.set(nodeId, {
+          llmResponse: {
+            text: geminiText
+          }
+        });
+        if (onStatusChange) onStatusChange(nodeId, "completed");
+        continue;
+      } catch (error) {
+        context.log(nodeId, `Error in LLM execution: ${error.message}`);
+        console.error(`[${nodeId}] Full Error Stack:`, error);
+        if (onStatusChange) onStatusChange(nodeId, "error");
+        throw error;
+      }
+    }
     const ExecutorClass = executorRegistry[nodeType];
     if (!ExecutorClass) {
       context.log(nodeId, `No executor found for type: ${nodeType}`);
@@ -1369,4 +1419,4 @@ export {
    * limitations under the License.
    *)
 */
-//# sourceMappingURL=chunk-KAVSWOIB.mjs.map
+//# sourceMappingURL=chunk-MB2KQIHZ.mjs.map

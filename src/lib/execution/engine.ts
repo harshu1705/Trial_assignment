@@ -1,4 +1,5 @@
 import { Edge, Node } from "@xyflow/react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ExecutableNode, ExecutionContext, ExecutionLog } from "./types";
 import { executorRegistry } from "./ExecutorRegistry";
 
@@ -71,6 +72,35 @@ export const getExecutionOrder = (nodes: Node[], edges: Edge[]): string[] => {
 };
 
 /**
+ * Standalone executor for LLM nodes to guarantee output format.
+ * Bypasses the generic registry to ensure stricter control.
+ */
+export async function executeLLMNode({ prompt }: { prompt: string }) {
+    if (!process.env.GEMINI_API_KEY) {
+        console.error("❌ GEMINI_API_KEY is missing in process.env");
+        throw new Error("GEMINI_API_KEY is not set");
+    }
+    console.log("🔑 GEMINI_API_KEY is present (" + process.env.GEMINI_API_KEY.substring(0, 4) + "...)");
+
+    try {
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        // Guard against empty prompt to prevent 400s
+        const validPrompt = prompt && prompt.trim().length > 0 ? prompt : "Hello";
+        console.log(`🤖 Sending prompt to Gemini: "${validPrompt.substring(0, 50)}..."`);
+
+        const result = await model.generateContent(validPrompt);
+        const text = result.response.text();
+        console.log("✅ Gemini response received length:", text.length);
+        return text;
+    } catch (error: any) {
+        console.error("❌ Gemini API execution error:", error);
+        throw error;
+    }
+}
+
+/**
  * Orchestrates the execution of the workflow.
  */
 export const runWorkflow = async (
@@ -103,6 +133,50 @@ export const runWorkflow = async (
         if (!node) continue;
 
         const nodeType = node.type || "unknown";
+
+        // Guaranteed LLM Execution Path
+        if (nodeType === "llm") {
+            try {
+                if (onStatusChange) onStatusChange(nodeId, 'running');
+
+                // Collect inputs from upstream nodes
+                const inputEdges = edges.filter(e => e.target === nodeId);
+                const inputs: Record<string, unknown> = { ...node.data };
+
+                for (const edge of inputEdges) {
+                    const sourceResult = context.nodeResults.get(edge.source);
+                    if (sourceResult) {
+                        Object.assign(inputs, sourceResult);
+                    }
+                }
+
+                const prompt = (inputs.text as string) || (inputs.prompt as string) || "";
+                context.log(nodeId, `Executing LLM Node with prompt: "${prompt.substring(0, 50)}..."`);
+
+                const geminiText = await executeLLMNode({
+                    prompt: prompt,
+                });
+
+                context.log(nodeId, `Generated ${geminiText.length} characters`);
+
+                context.nodeResults.set(nodeId, {
+                    llmResponse: {
+                        text: geminiText,
+                    },
+                });
+
+                if (onStatusChange) onStatusChange(nodeId, 'completed');
+                continue; // Skip generic executor
+
+            } catch (error: any) {
+                context.log(nodeId, `Error in LLM execution: ${error.message}`);
+                console.error(`[${nodeId}] Full Error Stack:`, error);
+                if (onStatusChange) onStatusChange(nodeId, 'error');
+                // We rethrow so the workflow engine knows it failed
+                throw error;
+            }
+        }
+
         const ExecutorClass = executorRegistry[nodeType];
 
         if (!ExecutorClass) {
