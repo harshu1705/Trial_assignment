@@ -195,8 +195,30 @@ const Flow = () => {
 
             console.log('Workflow triggered, Run ID:', data.runId);
 
-            // Start polling (Fire and Forget)
-            pollRunStatus(data.runId);
+            // Immediate update if output is present (Blocking/Sync behavior)
+            if (data.status === "COMPLETED" && data.output?.results) {
+                const results = data.output.results;
+                const nodeStatusMap = data.output.nodeStatus || {};
+
+                setNodes((nds) =>
+                    nds.map((n) => {
+                        const executionResult = results[n.id] || {};
+                        return {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                ...executionResult,
+                                status: nodeStatusMap[n.id] || 'completed'
+                            },
+                        };
+                    })
+                );
+                setRunStatus("COMPLETED");
+                setIsRunning(false);
+            } else {
+                // Fallback to polling if status is not immediately completed
+                pollRunStatus(data.runId);
+            }
 
         } catch (error: any) {
             console.error("Workflow trigger failed", error);

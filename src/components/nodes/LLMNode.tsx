@@ -54,11 +54,11 @@ export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
                     {data.status === 'completed' && (() => {
                         // Robust data extraction as requested
                         const aiText = (
+                            (data.llmResponse as string) ||
                             (data.response as any)?.text ||
                             (data.response as any)?.llmResponse?.text ||
                             (data.response as string) ||
                             (data.text as string) ||
-                            (data.llmResponse as any)?.text ||
                             ""
                         );
 

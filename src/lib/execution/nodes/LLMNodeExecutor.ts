@@ -22,9 +22,7 @@ export class LLMNodeExecutor implements ExecutableNode {
             return {
                 response: text,
                 text: text,
-                llmResponse: {
-                    text: text
-                },
+                llmResponse: text,
                 prompt: prompt,
                 model: "gemini-1.5-flash"
             };

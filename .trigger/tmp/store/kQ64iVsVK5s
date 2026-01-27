@@ -1141,9 +1141,7 @@ var LLMNodeExecutor = class {
       return {
         response: text,
         text,
-        llmResponse: {
-          text
-        },
+        llmResponse: text,
         prompt,
         model: "gemini-1.5-flash"
       };
@@ -1303,11 +1301,14 @@ var workflowTask = task({
         console.log(`[${nodeId}] ➡️ ${status}`);
         nodeStatus[nodeId] = status;
       });
+      const llmResult = Array.from(context.nodeResults.values()).find((r) => r.llmResponse);
       console.log("✅ Workflow execution complete.");
       return {
         success: true,
         executionId: context.executionId,
         results: Object.fromEntries(context.nodeResults),
+        llmResponse: llmResult ? llmResult.llmResponse : void 0,
+        // Bubble up for debug/UI checks
         logs: context.logs,
         nodeStatus,
         // Per-node status for UI
@@ -1368,4 +1369,4 @@ export {
    * limitations under the License.
    *)
 */
-//# sourceMappingURL=chunk-34OT4QUW.mjs.map
+//# sourceMappingURL=chunk-KAVSWOIB.mjs.map
