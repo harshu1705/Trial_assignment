@@ -4,7 +4,7 @@ import { memo } from "react";
 import { BaseNode } from "./BaseNode";
 import { OutputHandle } from "./OutputHandle";
 import { Sparkles } from "lucide-react";
-import { NodeProps } from "@xyflow/react";
+import { NodeProps, Handle, Position } from "@xyflow/react";
 
 export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
     const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -23,6 +23,11 @@ export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
             selected={selected}
             status={data.status}
         >
+            <Handle
+                type="target"
+                position={Position.Left}
+                className="!bg-slate-500 !w-3 !h-3 !border-2 !border-white hover:!bg-emerald-500 transition-colors"
+            />
             <div className="space-y-2">
                 <label className="text-xs font-medium text-slate-600">Prompt</label>
                 <textarea
