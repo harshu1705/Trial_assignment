@@ -1,44 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { tasks } from "@trigger.dev/sdk/v3";
-import type { workflowTask } from "@/trigger/workflow";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
     try {
-        const body = await request.json();
+        const body = await req.json();
         const { nodes, edges } = body;
 
-        // Validate payload
-        if (!nodes || !Array.isArray(nodes)) {
+        if (!nodes || nodes.length === 0) {
             return NextResponse.json(
-                { error: "Invalid payload: nodes must be an array" },
+                { error: "No nodes to execute" },
                 { status: 400 }
             );
         }
 
-        if (!edges || !Array.isArray(edges)) {
-            return NextResponse.json(
-                { error: "Invalid payload: edges must be an array" },
-                { status: 400 }
-            );
-        }
-
-        console.log(`Triggering workflow execution with ${nodes.length} nodes`);
-
-        // Trigger the workflow task
-        const handle = await tasks.trigger<typeof workflowTask>(
-            "workflow-task",
-            { nodes, edges }
-        );
+        // Trigger background workflow using v3 SDK
+        const run = await tasks.trigger("workflow-task", {
+            nodes,
+            edges,
+        });
 
         return NextResponse.json({
             success: true,
-            runId: handle.id,
+            runId: run.id,
         });
+    } catch (error) {
+        console.error("Execution error:", error);
 
-    } catch (error: any) {
-        console.error("Failed to trigger workflow:", error);
         return NextResponse.json(
-            { error: error.message || "Failed to trigger workflow" },
+            { error: "Execution failed" },
             { status: 500 }
         );
     }

@@ -46,6 +46,7 @@ const Flow = () => {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [isRunning, setIsRunning] = useState(false);
+    const [runStatus, setRunStatus] = useState<"IDLE" | "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED">("IDLE");
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const { screenToFlowPosition } = useReactFlow();
 
@@ -88,116 +89,120 @@ const Flow = () => {
     );
 
     const pollRunStatus = async (runId: string) => {
-        const maxAttempts = 60; // 5 minutes max (5s intervals)
+        const pollInterval = 1000; // 1 second
+        const maxAttempts = 300; // 5 minutes approx
         let attempts = 0;
 
-        const poll = async () => {
+        const checkStatus = async () => {
             if (attempts >= maxAttempts) {
-                console.log("Polling timeout - workflow may still be running");
+                console.log("Polling timeout");
+                setRunStatus("FAILED");
                 setIsRunning(false);
                 return;
             }
 
             try {
                 const response = await fetch(`/api/execute/${runId}`);
+                if (!response.ok) throw new Error("Failed to fetch status");
+
                 const data = await response.json();
+                console.log("Poll status:", data.status);
 
-                console.log("Run status:", data.status);
+                // Map Trigger.dev status to our UI status
+                // Trigger.dev statuses: "WAITING", "QUEUED", "EXECUTING", "COMPLETED", "FAILED", "CANCELED", "TIMED_OUT"
+                let currentStatus: typeof runStatus = "RUNNING";
+                if (data.status === "QUEUED" || data.status === "WAITING") {
+                    currentStatus = "QUEUED";
+                } else if (data.status === "COMPLETED") {
+                    currentStatus = "COMPLETED";
+                } else if (["FAILED", "CANCELED", "TIMED_OUT", "CRASHED"].includes(data.status)) {
+                    currentStatus = "FAILED";
+                }
 
-                // Update node states if we have node status data
+                setRunStatus(currentStatus);
+
+                // Update individual node statuses AND outputs if available
                 if (data.output?.nodeStatus) {
                     const nodeStatusMap = data.output.nodeStatus;
+                    const results = data.output.results || {}; // Get results from the output
+
                     setNodes((nds) =>
-                        nds.map((n) => ({
-                            ...n,
-                            data: {
-                                ...n.data,
-                                status: nodeStatusMap[n.id] || 'idle'
-                            },
-                        }))
+                        nds.map((n) => {
+                            // Merge existing data with execution results (if any for this node)
+                            // This allows nodes to display their computed output
+                            const executionResult = results[n.id] || {};
+
+                            return {
+                                ...n,
+                                data: {
+                                    ...n.data,
+                                    ...executionResult, // Spread result properties (e.g. value, outputUrl)
+                                    status: nodeStatusMap[n.id] || (currentStatus === "RUNNING" ? 'running' : n.data.status)
+                                },
+                            };
+                        })
                     );
                 }
 
-                if (data.isCompleted || data.isFailed) {
-                    // Execution finished
-                    if (data.isFailed) {
-                        alert(`Workflow failed: ${data.error || 'Unknown error'}`);
-                        // Mark all nodes as error if no specific status
-                        if (!data.output?.nodeStatus) {
-                            setNodes((nds) =>
-                                nds.map((n) => ({
-                                    ...n,
-                                    data: { ...n.data, status: 'error' },
-                                }))
-                            );
-                        }
-                    } else {
-                        console.log("Workflow completed successfully!", data.output);
-                    }
-
+                if (currentStatus === "COMPLETED" || currentStatus === "FAILED") {
                     setIsRunning(false);
-                    return;
+                    if (currentStatus === "FAILED") {
+                        alert(`Workflow execution failed: ${data.error ? JSON.stringify(data.error) : "Unknown error"}`);
+                    }
+                    return; // Stop polling
                 }
 
-                // Still running, poll again
                 attempts++;
-                setTimeout(poll, 2000); // Poll every 2 seconds for faster feedback
+                setTimeout(checkStatus, pollInterval);
 
-            } catch (error: any) {
-                console.error("Failed to poll status:", error);
-                setIsRunning(false);
+            } catch (error) {
+                console.error("Polling error:", error);
+                // Don't stop polling immediately on network error, might be transient
+                attempts++;
+                setTimeout(checkStatus, pollInterval);
             }
         };
 
-        poll();
+        // Start polling
+        checkStatus();
     };
 
     const handleRunWorkflow = async () => {
         if (isRunning) return;
         setIsRunning(true);
+        setRunStatus("QUEUED");
 
-        // Set all nodes to running state initially
+        // Reset node states
         setNodes((nds) =>
             nds.map((n) => ({
                 ...n,
-                data: { ...n.data, status: 'running' },
+                data: { ...n.data, status: 'idle' },
             }))
         );
 
         try {
-            // Call the API endpoint to trigger execution
             const response = await fetch('/api/execute', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nodes, edges }),
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Failed to execute workflow');
+                throw new Error(data.error || 'Failed to trigger workflow');
             }
 
-            console.log('Workflow triggered successfully:', data.runId);
+            console.log('Workflow triggered, Run ID:', data.runId);
 
-            // Start polling for status updates
+            // Start polling (Fire and Forget)
             pollRunStatus(data.runId);
 
         } catch (error: any) {
-            console.error("Workflow failed", error);
+            console.error("Workflow trigger failed", error);
             alert(`Error: ${error.message}`);
-
-            // Mark all nodes as error
-            setNodes((nds) =>
-                nds.map((n) => ({
-                    ...n,
-                    data: { ...n.data, status: 'error' },
-                }))
-            );
-
             setIsRunning(false);
+            setRunStatus("FAILED");
         }
     };
 
@@ -230,8 +235,17 @@ const Flow = () => {
                         `}
                     >
                         <Play className={`w-5 h-5 ${isRunning ? "animate-pulse" : "fill-current"}`} />
-                        <span>{isRunning ? "Running..." : "Run Workflow"}</span>
+                        <span>
+                            {runStatus === "QUEUED" ? "Queued..." :
+                                runStatus === "RUNNING" ? "Running..." :
+                                    "Run Workflow"}
+                        </span>
                     </button>
+                    {runStatus === "FAILED" && (
+                        <div className="mt-2 text-red-500 text-sm font-medium text-center bg-white/80 p-2 rounded shadow">
+                            Last Run Failed
+                        </div>
+                    )}
                 </Panel>
             </ReactFlow>
             {nodes.length === 0 && (
