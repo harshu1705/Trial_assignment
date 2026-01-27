@@ -31,6 +31,56 @@ export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
                 />
             </div>
 
+            {/* AI Response Panel */}
+            {(data.status === 'running' || data.status === 'completed' || data.status === 'error') && (
+                <div className="mt-4 space-y-2">
+
+                    {data.status === 'running' && (
+                        <>
+                            <label className="text-xs font-medium text-slate-600">AI Response</label>
+                            <div className="flex items-center space-x-2 text-xs text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-100 animate-pulse">
+                                <Sparkles className="w-3 h-3 animate-spin" />
+                                <span>Generating response...</span>
+                            </div>
+                        </>
+                    )}
+
+                    {data.status === 'error' && (
+                        <div className="text-xs text-red-600 bg-red-50 p-3 rounded-md border border-red-100">
+                            Generation failed. Please check inputs and try again.
+                        </div>
+                    )}
+
+                    {data.status === 'completed' && (() => {
+                        // Robust data extraction as requested
+                        const aiText = (
+                            (data.response as any)?.text ||
+                            (data.response as any)?.llmResponse?.text ||
+                            (data.response as string) ||
+                            (data.text as string) ||
+                            (data.llmResponse as any)?.text ||
+                            ""
+                        );
+
+                        if (!aiText) return null;
+
+                        return (
+                            <div className="mt-3">
+                                <label className="text-xs font-medium text-slate-500">
+                                    AI Response
+                                </label>
+                                <textarea
+                                    value={aiText}
+                                    readOnly
+                                    className="mt-1 w-full rounded-md border bg-slate-50 p-2 text-sm text-slate-800 focus:outline-none resize-y"
+                                    rows={6}
+                                />
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
+
             <div className="mt-3">
                 <OutputHandle id="response" label="AI Response" />
             </div>
