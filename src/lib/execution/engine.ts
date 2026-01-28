@@ -218,19 +218,26 @@ export const runWorkflow = async (
                     throw new Error("LLM node received empty prompt");
                 }
 
+                const startTime = Date.now();
                 context.log(nodeId, `Executing LLM Node with prompt: "${prompt.substring(0, 50)}..."`);
 
                 const geminiText = await executeLLMNode({
                     prompt: prompt,
                 });
+                const endTime = Date.now();
+                const duration = endTime - startTime;
 
-                context.log(nodeId, `Generated ${geminiText.length} characters`);
+                context.log(nodeId, `Generated ${geminiText.length} characters in ${duration}ms`);
 
                 context.nodeResults.set(nodeId, {
                     output: geminiText, // ← MUST be a string
                     _meta: {
                         type: nodeType,
                         label: node.data.label,
+                        startTime,
+                        endTime,
+                        duration,
+                        inputs, // ← Store inputs
                     }
                 });
 
@@ -272,12 +279,20 @@ export const runWorkflow = async (
                 }
             }
 
+            const startTime = Date.now();
             const output = await executor.execute(inputs, context);
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+
             context.nodeResults.set(nodeId, {
                 ...output,
                 _meta: {
                     type: nodeType,
                     label: node.data.label,
+                    startTime,
+                    endTime,
+                    duration,
+                    inputs, // ← Store inputs
                 }
             });
 

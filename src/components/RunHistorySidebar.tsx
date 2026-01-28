@@ -98,6 +98,12 @@ export const RunHistorySidebar = () => {
         return `${relative} · ${absolute}`;
     };
 
+    const formatDuration = (ms?: number) => {
+        if (ms === undefined || ms === null) return '-';
+        if (ms < 1000) return `${ms}ms`;
+        return `${(ms / 1000).toFixed(2)}s`;
+    };
+
     const getStatusBadgeStyles = (status: string) => {
         switch (status.toLowerCase()) {
             case 'success':
@@ -190,54 +196,74 @@ export const RunHistorySidebar = () => {
 
                         {/* Run Details (Expanded) */}
                         {expandedRunId === run.id && (
-                            <div className="border-t border-slate-100 bg-slate-50/50 p-2 animate-in slide-in-from-top-1 duration-200">
-                                <div className="space-y-2">
+                            <div className="border-t border-slate-100 bg-slate-50/50 p-3 animate-in slide-in-from-top-1 duration-200">
+                                <div className="space-y-0 relative">
+                                    {/* Vertical Timeline Line */}
+                                    <div className="absolute left-[11px] top-2 bottom-4 w-px bg-slate-200 z-0"></div>
+
                                     {/* Iterate over nodes */}
                                     {run.payload?.results && Object.keys(run.payload.results).length > 0 ? (
-                                        Object.entries(run.payload.results).map(([nodeId, result]) => (
-                                            <div key={nodeId} className="flex flex-col text-xs bg-white border border-slate-100 rounded-md p-2 shadow-sm">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <div className="flex items-center space-x-1.5 flex-1 min-w-0">
-                                                        {result.status === 'success' && <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />}
-                                                        {result.status === 'failed' && <XCircle className="w-3 h-3 text-red-500 shrink-0" />}
-                                                        {result.status === 'running' && <Activity className="w-3 h-3 text-blue-500 animate-pulse shrink-0" />}
-
-                                                        <div className="flex items-baseline space-x-2 truncate">
-                                                            {/* Node Name/Type */}
-                                                            <span className="font-medium text-slate-700 truncate">
-                                                                {/* @ts-ignore - dynamic data */}
-                                                                {result._meta?.label || (result._meta?.type ? result._meta.type.replace(/([A-Z])/g, ' $1').trim() : 'Node')}
-                                                            </span>
-                                                            {/* Node ID (truncated) */}
-                                                            <span className="text-[9px] text-slate-400 font-mono hidden sm:inline-block">
-                                                                #{nodeId.substring(0, 6)}
-                                                            </span>
-                                                        </div>
+                                        Object.entries(run.payload.results).map(([nodeId, result], index) => (
+                                            <div key={nodeId} className="relative z-10 pb-4 last:pb-0 group">
+                                                <div className="flex items-start space-x-3">
+                                                    {/* Status Icon (Timeline Node) */}
+                                                    <div className="bg-slate-50 pt-1 relative z-10">
+                                                        {result.status === 'success' && <CheckCircle className="w-5 h-5 text-emerald-500 bg-white rounded-full ring-2 ring-white" />}
+                                                        {result.status === 'failed' && <XCircle className="w-5 h-5 text-red-500 bg-white rounded-full ring-2 ring-white" />}
+                                                        {result.status === 'running' && <Activity className="w-5 h-5 text-blue-500 animate-pulse bg-white rounded-full ring-2 ring-white" />}
                                                     </div>
-                                                    <span className="text-[10px] text-slate-400">
-                                                        {result.duration ? `${result.duration}s` : '-'}
-                                                    </span>
-                                                </div>
 
-                                                {/* Output Preview */}
-                                                {result.output && (
-                                                    <div className="mt-1 pl-4 border-l-2 border-slate-100">
-                                                        <div className="text-[10px] text-slate-500">
-                                                            <div className="font-mono bg-slate-50 rounded p-1.5 border border-slate-100">
-                                                                <ExpandableOutput content={typeof result.output === 'string' ? result.output : JSON.stringify(result.output, null, 2)} />
+                                                    {/* Node Content */}
+                                                    <div className="flex-1 min-w-0 bg-white border border-slate-200 rounded-md p-2 shadow-sm group-hover:border-slate-300 transition-colors">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex flex-col truncate pr-2">
+                                                                {/* Node Name/Type */}
+                                                                <span className="font-semibold text-xs text-slate-700 truncate">
+                                                                    {/* @ts-ignore - dynamic data */}
+                                                                    {result._meta?.label || (result._meta?.type ? result._meta.type.replace(/([A-Z])/g, ' $1').trim() : 'Node')}
+                                                                </span>
+                                                                {/* Node ID (truncated) */}
+                                                                <span className="text-[9px] text-slate-400 font-mono">
+                                                                    #{nodeId.substring(0, 8)}...
+                                                                </span>
                                                             </div>
+                                                            {/* Execution Duration */}
+                                                            <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                                {/* @ts-ignore - dynamic data */}
+                                                                {formatDuration(result._meta?.duration)}
+                                                            </span>
                                                         </div>
-                                                    </div>
-                                                )}
 
-                                                {/* Error Message */}
-                                                {result.error && (
-                                                    <div className="mt-1 pl-4 border-l-2 border-red-100">
-                                                        <div className="text-[10px] text-red-600 font-medium break-words">
-                                                            {result.error}
-                                                        </div>
+                                                        {/* Input Preview */}
+                                                        {/* @ts-ignore - dynamic data */}
+                                                        {result._meta?.inputs && Object.keys(result._meta.inputs).length > 0 && (
+                                                            <div className="mt-2 text-[10px] text-slate-500">
+                                                                <span className="text-[9px] uppercase tracking-wider font-semibold text-slate-400 mb-0.5 block">Input</span>
+                                                                <div className="font-mono bg-slate-50 rounded p-1.5 border border-slate-100">
+                                                                    {/* @ts-ignore - dynamic data */}
+                                                                    <ExpandableOutput content={JSON.stringify(result._meta.inputs, null, 2)} />
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Output Preview */}
+                                                        {result.output && (
+                                                            <div className="mt-2 text-[10px] text-slate-500">
+                                                                <span className="text-[9px] uppercase tracking-wider font-semibold text-slate-400 mb-0.5 block">Output</span>
+                                                                <div className="font-mono bg-slate-50 rounded p-1.5 border border-slate-100">
+                                                                    <ExpandableOutput content={typeof result.output === 'string' ? result.output : JSON.stringify(result.output, null, 2)} />
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Error Message */}
+                                                        {result.error && (
+                                                            <div className="mt-2 text-[10px] text-red-600 bg-red-50 p-1.5 rounded border border-red-100 font-medium break-words">
+                                                                {result.error}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
+                                                </div>
                                             </div>
                                         ))
                                     ) : (
