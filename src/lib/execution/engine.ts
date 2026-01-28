@@ -1,5 +1,4 @@
 import { Edge, Node } from "@xyflow/react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ExecutableNode, ExecutionContext, ExecutionLog } from "./types";
 import { executorRegistry } from "./ExecutorRegistry";
 
@@ -73,29 +72,42 @@ export const getExecutionOrder = (nodes: Node[], edges: Edge[]): string[] => {
 
 /**
  * Standalone executor for LLM nodes to guarantee output format.
- * Bypasses the generic registry to ensure stricter control.
+ * Uses native fetch for Groq (Llama 3) to strictly avoid dependency issues.
  */
 export async function executeLLMNode({ prompt }: { prompt: string }) {
-    if (!process.env.GEMINI_API_KEY) {
-        console.error("❌ GEMINI_API_KEY is missing in process.env");
-        throw new Error("GEMINI_API_KEY is not set");
+    if (!process.env.GROQ_API_KEY) {
+        console.error("❌ GROQ_API_KEY is missing");
+        throw new Error("GROQ_API_KEY is not set");
     }
-    console.log("🔑 GEMINI_API_KEY is present (" + process.env.GEMINI_API_KEY.substring(0, 4) + "...)");
+
+    console.log(`🚀 Sending prompt to Groq (Llama 3) via fetch: "${prompt.substring(0, 50)}..."`);
 
     try {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "llama3-8b-8192",
+                messages: [{ role: "user", content: prompt }]
+            })
+        });
 
-        // Guard against empty prompt to prevent 400s
-        const validPrompt = prompt && prompt.trim().length > 0 ? prompt : "Hello";
-        console.log(`🤖 Sending prompt to Gemini: "${validPrompt.substring(0, 50)}..."`);
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`Groq API Error: ${response.status} - ${errorBody}`);
+        }
 
-        const result = await model.generateContent(validPrompt);
-        const text = result.response.text();
-        console.log("✅ Gemini response received length:", text.length);
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content || "No response";
+
+        console.log("✅ Groq response received length:", text.length);
         return text;
+
     } catch (error: any) {
-        console.error("❌ Gemini API execution error:", error);
+        console.error("❌ Groq API execution error:", error);
         throw error;
     }
 }
@@ -132,10 +144,12 @@ export const runWorkflow = async (
         const node = nodes.find(n => n.id === nodeId);
         if (!node) continue;
 
+        console.log("🔥 EXECUTING NODE", node.id, node.type);
+
         const nodeType = node.type || "unknown";
 
-        // Guaranteed LLM Execution Path
-        if (nodeType === "llm") {
+        // Guaranteed LLM Execution Path (Robust Fuzzy Match)
+        if (nodeType.toLowerCase().includes("llm") || nodeType.toLowerCase().includes("ai")) {
             try {
                 if (onStatusChange) onStatusChange(nodeId, 'running');
 
@@ -150,7 +164,12 @@ export const runWorkflow = async (
                     }
                 }
 
-                const prompt = (inputs.text as string) || (inputs.prompt as string) || "";
+                const prompt = (inputs.text as string) || (inputs.prompt as string) || (inputs.value as string) || "";
+
+                if (!prompt) {
+                    throw new Error("LLM node received empty prompt");
+                }
+
                 context.log(nodeId, `Executing LLM Node with prompt: "${prompt.substring(0, 50)}..."`);
 
                 const geminiText = await executeLLMNode({
