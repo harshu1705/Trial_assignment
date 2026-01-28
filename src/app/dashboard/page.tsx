@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Canvas } from "@/components/Canvas";
 import { NodesSidebar } from "@/components/NodesSidebar";
+import { RunHistorySidebar } from "@/components/RunHistorySidebar";
 
 export default async function DashboardPage() {
     const { userId } = await auth();
@@ -37,6 +38,7 @@ export default async function DashboardPage() {
                 <div className="flex-1 h-full relative">
                     <Canvas />
                 </div>
+                <RunHistorySidebar />
             </div>
         </div>
     );

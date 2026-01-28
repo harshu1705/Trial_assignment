@@ -1,6 +1,7 @@
 import { task } from "@trigger.dev/sdk/v3";
 import { runWorkflow } from "@/lib/execution/engine";
 import { Node, Edge } from "@xyflow/react";
+import { prisma } from "@/lib/prisma";
 
 export const workflowTask = task({
     id: "workflow-task",
@@ -28,28 +29,60 @@ export const workflowTask = task({
 
             console.log("✅ Workflow execution complete.");
 
-            // Return the serializable parts of the context
-            return {
+            const result = {
                 success: true,
                 executionId: context.executionId,
                 results: Object.fromEntries(context.nodeResults),
-                llmResponse: llmNodeResult ? { text: (llmNodeResult as any).output } : undefined, // Wrap in object for consistent API/UI consumption if needed
+                llmResponse: llmNodeResult ? { text: (llmNodeResult as any).output } : undefined,
                 logs: context.logs,
-                nodeStatus, // Per-node status for UI
+                nodeStatus,
                 nodesExecuted: context.logs.filter(l => l.message.includes('Executing')).length
             };
+
+            // DAY 2: Persist Run History
+            try {
+                await prisma.workflowRun.create({
+                    data: {
+                        status: "success",
+                        scope: "full",
+                        payload: JSON.stringify(result), // Manual serialization
+                    },
+                });
+                console.log("✅ Run saved to DB");
+            } catch (dbError) {
+                console.error("❌ Failed to save run to DB:", dbError);
+            }
+
+            // Return the serializable parts of the context
+            return result;
 
         } catch (error: any) {
             console.error("❌ Workflow failed:", error);
 
-            // Return structured error response
-            return {
+            const failedResult = {
                 success: false,
                 error: error.message || "Unknown error occurred",
                 stack: error.stack,
                 failedAt: new Date().toISOString(),
                 nodeStatus // Include partial status even on failure
             };
+
+            // DAY 2: Persist Failed Run
+            try {
+                await prisma.workflowRun.create({
+                    data: {
+                        status: "failed",
+                        scope: "full",
+                        payload: JSON.stringify(failedResult),
+                    },
+                });
+                console.log("✅ Failed run saved to DB");
+            } catch (dbError) {
+                console.error("❌ Failed to save run to DB:", dbError);
+            }
+
+            // Return structured error response
+            return failedResult;
         }
     },
 });

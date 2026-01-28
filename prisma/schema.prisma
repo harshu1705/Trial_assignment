@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model WorkflowRun {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  status    String
+  scope     String
+  payload   String
+}
