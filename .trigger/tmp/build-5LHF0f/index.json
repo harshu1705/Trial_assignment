@@ -1,0 +1,43 @@
+{
+  "configPath": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-5LHF0f\\trigger.config.mjs",
+  "customConditions": [
+  ],
+  "queues": [
+  ],
+  "runtime": "node",
+  "runtimeVersion": "24.12.0",
+  "tasks": [
+    {
+      "entryPoint": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-5LHF0f\\src\\trigger\\index.mjs",
+      "filePath": "src/trigger/index.ts",
+      "id": "test-task",
+      "maxDuration": 300,
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 10000,
+        "minTimeoutInMs": 1000,
+        "randomize": true
+      }
+    },
+    {
+      "entryPoint": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-5LHF0f\\src\\trigger\\index.mjs",
+      "filePath": "src/trigger/index.ts",
+      "id": "workflow-task",
+      "maxDuration": 600,
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 10000,
+        "minTimeoutInMs": 1000,
+        "randomize": true
+      }
+    }
+  ],
+  "timings": {
+    "src/trigger/index.ts": 5.439700000000016,
+    "src/trigger/test-job.ts": 1.7035000000000196,
+    "src/trigger/workflow.ts": 3.4312000000000467
+  },
+  "workerEntryPoint": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-5LHF0f\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs"
+}

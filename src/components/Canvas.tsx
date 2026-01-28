@@ -187,38 +187,21 @@ const Flow = () => {
                 body: JSON.stringify({ nodes, edges }),
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                throw new Error("Server returned non-JSON response");
+            }
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to trigger workflow');
+            if (!response.ok || !data.success) {
+                throw new Error(data?.error || 'Failed to trigger workflow');
             }
 
             console.log('Workflow triggered, Run ID:', data.runId);
 
-            // Immediate update if output is present (Blocking/Sync behavior)
-            if (data.status === "COMPLETED" && data.output?.results) {
-                const results = data.output.results;
-                const nodeStatusMap = data.output.nodeStatus || {};
-
-                setNodes((nds) =>
-                    nds.map((n) => {
-                        const executionResult = results[n.id] || {};
-                        return {
-                            ...n,
-                            data: {
-                                ...n.data,
-                                ...executionResult,
-                                status: nodeStatusMap[n.id] || 'completed'
-                            },
-                        };
-                    })
-                );
-                setRunStatus("COMPLETED");
-                setIsRunning(false);
-            } else {
-                // Fallback to polling if status is not immediately completed
-                pollRunStatus(data.runId);
-            }
+            // Start polling as the API now returns immediately
+            pollRunStatus(data.runId);
 
         } catch (error: any) {
             console.error("Workflow trigger failed", error);

@@ -71,45 +71,93 @@ export const getExecutionOrder = (nodes: Node[], edges: Edge[]): string[] => {
 };
 
 /**
+ * Executes a prompt using Google's Gemini API via fetch (REST).
+ */
+async function executeGeminiNode(prompt: string, apiKey: string) {
+    console.log(`🚀 Sending prompt to Gemini via fetch...`);
+
+    // Using gemini-1.5-flash for speed and cost effectiveness
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+        })
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Gemini API Error: ${response.status} - ${errorBody}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) throw new Error("Gemini response missing text content");
+
+    console.log("✅ Gemini response received length:", text.length);
+    return text;
+}
+
+/**
  * Standalone executor for LLM nodes to guarantee output format.
- * Uses native fetch for Groq (Llama 3) to strictly avoid dependency issues.
+ * Uses native fetch to strictly avoid dependency issues.
  */
 export async function executeLLMNode({ prompt }: { prompt: string }) {
-    if (!process.env.GROQ_API_KEY) {
-        console.error("❌ GROQ_API_KEY is missing");
-        throw new Error("GROQ_API_KEY is not set");
-    }
-
-    console.log(`🚀 Sending prompt to Groq (Llama 3) via fetch: "${prompt.substring(0, 50)}..."`);
-
-    try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "llama3-8b-8192",
-                messages: [{ role: "user", content: prompt }]
-            })
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`Groq API Error: ${response.status} - ${errorBody}`);
+    // 1. Try Gemini (User Preference)
+    if (process.env.GEMINI_API_KEY) {
+        try {
+            return await executeGeminiNode(prompt, process.env.GEMINI_API_KEY);
+        } catch (error: any) {
+            console.error("⚠️ Gemini failed, falling back to other providers if available:", error.message);
+            // Fallthrough to Groq or Mock
         }
-
-        const data = await response.json();
-        const text = data.choices?.[0]?.message?.content || "No response";
-
-        console.log("✅ Groq response received length:", text.length);
-        return text;
-
-    } catch (error: any) {
-        console.error("❌ Groq API execution error:", error);
-        throw error;
     }
+
+    // 2. Try Groq
+    if (process.env.GROQ_API_KEY) {
+        console.log(`🚀 Sending prompt to Groq (Llama 3.1) via fetch: "${prompt.substring(0, 50)}..."`);
+        try {
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "llama-3.1-8b-instant", // Updated from decommissioned model
+                    messages: [{ role: "user", content: prompt }]
+                })
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`Groq API Error: ${response.status} - ${errorBody}`);
+            }
+
+            const data = await response.json();
+            const text = data.choices?.[0]?.message?.content || "No response";
+
+            console.log("✅ Groq response received length:", text.length);
+            return text;
+
+        } catch (error: any) {
+            console.error("❌ Groq API execution error:", error);
+            // Fallthrough to Mock if logic permits, or rethrow
+            if (process.env.GEMINI_API_KEY) throw error; // If Gemini also failed, just fail.
+        }
+    }
+
+    // 3. Fallback: Mock (if allowed or no keys)
+    // Only use mock if NO keys are present OR if we decide to be resilient
+    if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
+        console.warn("⚠️ No API key found, using mock response");
+        return "This is a mock AI response for demonstration purposes. (No API keys configured)";
+    }
+
+    throw new Error("Detailed LLM execution failed. Check server logs for provider errors.");
 }
 
 /**

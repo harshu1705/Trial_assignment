@@ -1,0 +1,128 @@
+{
+  "build": {
+  },
+  "cliPackageVersion": "4.3.3",
+  "config": {
+    "dirs": [
+      "./src/trigger"
+    ],
+    "project": "proj_xmwuwovckgkydvpsnxcd"
+  },
+  "configPath": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\trigger.config.mjs",
+  "contentHash": "c5e34507ff482c6dd3a9818ff4f2fe38",
+  "customConditions": [
+  ],
+  "deploy": {
+    "env": {
+    }
+  },
+  "environment": "dev",
+  "externals": [
+    {
+      "name": "import-in-the-middle",
+      "version": "1.15.0"
+    }
+  ],
+  "files": [
+    {
+      "entry": "src/trigger/index.ts",
+      "out": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\src\\trigger\\index.mjs"
+    },
+    {
+      "entry": "src/trigger/test-job.ts",
+      "out": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\src\\trigger\\test-job.mjs"
+    },
+    {
+      "entry": "src/trigger/workflow.ts",
+      "out": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\src\\trigger\\workflow.mjs"
+    }
+  ],
+  "indexWorkerEntryPoint": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-index-worker.mjs",
+  "otelImportHook": {
+    "include": [
+    ]
+  },
+  "outputHashes": {
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-244PAGAH.mjs": "MKUfkr/RxtE",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-244PAGAH.mjs.map": "5cjM5D5eV/w",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-33IJXG33.mjs": "7VIyTZZO45s",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-33IJXG33.mjs.map": "a774tXQqqUI",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-6NEBVQ76.mjs": "lBGGkZnxRM8",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-6NEBVQ76.mjs.map": "SH1Tp8gF1qQ",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-BSH2TD44.mjs": "CZ5PF0JHUs8",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-BSH2TD44.mjs.map": "s44f3ZLy2qk",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-CA665XQR.mjs": "/ZVd2R5SHTc",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-CA665XQR.mjs.map": "hd2aYPRISmw",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-IA2HBA2V.mjs": "qy2h6yr++E8",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-IA2HBA2V.mjs.map": "fhm3KjIkXa0",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-JUYD2YC6.mjs": "AAz0H0hxbjI",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-JUYD2YC6.mjs.map": "szExXLvCt7s",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-NL3CHZZW.mjs": "GAVrymqkSMg",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-NL3CHZZW.mjs.map": "hOMZYnXa76U",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-U76V5X4F.mjs": "fr2hARHOnNU",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-U76V5X4F.mjs.map": "m2qaucNR/PI",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-USHNXJ63.mjs": "RkI7ln77K/4",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-USHNXJ63.mjs.map": "LMPzUuAiOIM",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-WVKQ2WDH.mjs": "lY8D4wPhB6g",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\chunk-WVKQ2WDH.mjs.map": "zsuqeRC7Zyk",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\crypto.node-FURLATZW.mjs": "zGJ8Kk+9yxY",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\crypto.node-FURLATZW.mjs.map": "0b4tlwmkM3g",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\esm-NUWTWICG.mjs": "UjRQPDYTd2I",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\esm-NUWTWICG.mjs.map": "VON93E1In1A",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-bsd-SKM5DQL5.mjs": "ABzFLwRn4DQ",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-bsd-SKM5DQL5.mjs.map": "MEVdITbbMCE",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-darwin-ZZAGSB6A.mjs": "9RU+GLeG/MQ",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-darwin-ZZAGSB6A.mjs.map": "hd3Uo5mbO8o",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-linux-U4KIZ3QI.mjs": "5rQQMNcZTW4",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-linux-U4KIZ3QI.mjs.map": "LR3Lh4qLcJM",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-unsupported-PABVZ23M.mjs": "+7kHhxcBK+E",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-unsupported-PABVZ23M.mjs.map": "2eHyOg8TCJ4",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-win-LQQJB3QE.mjs": "1DkAeAIwqkw",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\getMachineId-win-LQQJB3QE.mjs.map": "p2vMLwR5uFk",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-index-worker.mjs": "eCPtxosIKdI",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-index-worker.mjs.map": "tRvjVwiP/ew",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs": "Xfhyg8hXHD8",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs.map": "7glTClq8lxo",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\s2s-M6KWTXVW.mjs": "LDNM1LZiY0U",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\s2s-M6KWTXVW.mjs.map": "XRpNkbVtt/Y",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\src\\trigger\\index.mjs": "VpEXtreGryk",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\src\\trigger\\index.mjs.map": "IAz1rJRiy50",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\src\\trigger\\test-job.mjs": "8H/Uyg58pyA",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\src\\trigger\\test-job.mjs.map": "0b4tlwmkM3g",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\src\\trigger\\workflow.mjs": "b+hGjnNaKts",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\src\\trigger\\workflow.mjs.map": "0b4tlwmkM3g",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\trigger.config.mjs": "xTochaW61R4",
+    "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\trigger.config.mjs.map": "azARkcioLKA"
+  },
+  "outputPath": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE",
+  "packageVersion": "4.3.3",
+  "runWorkerEntryPoint": "C:\\Users\\user\\Downloads\\Assignment_Fullstack\\assignment-fullstack\\.trigger\\tmp\\build-crzQKE\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs",
+  "runtime": "node",
+  "sources": {
+    "package.json": {
+      "contentHash": "131662660c5c49ae2b90eadef7160f13",
+      "contents": "eJx1Uk2PgyAQvfsrCOeKotZse+phf4cJC1PDVsEAWtum/30DWnU33Rvz3ny8ecMjQggr1gI+IsyslbVqQbn43DeNdYxf8M5nDGCs1MonpYSSdEI7IwfmfKkzPQTIciM7Z/ERPSKEEMICBl+lYHTIv3cT/NXLRizEFM2Udcy4hZqimWqkCgzY8IoQeoapAjpQAhSXsBl94g2YS+LbfHsYVyXJS3J4dTs5I+saDBEwJFZcfEpBcpIvCePt3OhrYoDxMLeiGaHpvD5CmDd2DHhGKKGLyp5LAfFalZJ9ma1VXpDHaUkoKV7okk4PJFs1BDgWuv2PcjA6ZoDFrHfaynu4ZPVB9uuijsnmKpWIWzD1xOekWAXddThF5Zcvt64On++NfTXk1iadto7byd9itfbWgU2UFtO4LP3DbCw9vKNeG2/o+ege/IPFXKuzrOP3xm7E/ha5Of+y/mJu0BI+c+D2wZboGf0AZEDZBA=="
+    },
+    "src/trigger/index.ts": {
+      "contentHash": "81c65ca85af2489f5237feb78f95b91d",
+      "contents": "eJxtykEOQDAQBdC9xB1+upTQA1i7gQugU6GVkZmJOr6IrfV73mO4TxbDlDNs0qSILBhlW1eSLtAFY4RNF75I6oq+3SAKH3CdN1Jrd55d/4OFJcXM5cUHsBIjSg=="
+    },
+    "src/trigger/test-job.ts": {
+      "contentHash": "565ab3e5bee8a0627897e1add269856b",
+      "contents": "eJx1kMFugzAQRO9I/MMU9QAShUi9OUrVQw7tqVWTD4gVNsgK2MheaCLEv1cGR00P9c27OztvVrWdsYwRLN0ZE07WtEhe2aq6JltUNJSuOpfDc7KOoziiyzx+NNoxmBzvvWwzq9MxjgBAVQKJ7z35apIv1bLEjhhSw3SsjJYNWnnZ9lb6H9igszSQZiheKGyvtdI1lK7opLRiaq7LrjuhwPNqFSxsrwWku+oj0k5eGyMrgREtOSdrEnBs/b4pw+YFAdY/n8Y0VDSmTpM3ahqzAOx/j/CQZOt/BJ/BKckRTLP5VLdhS9xbfe83R7hBHb7oSGqgSuBxDAuK0J0O+V8Vq5Ycy7YT0PSNrWRKs4LN++5jN4dLszvFFJCnPI4mD/UDwEeTUA=="
+    },
+    "src/trigger/workflow.ts": {
+      "contentHash": "76663d40975e10f8a0dce38fe225e66a",
+      "contents": "eJyVVc2OIzUQvo8071CKRkpHynQPQuLQQxYWbQ6RFhbN7GgPo5HGsSsdE8cOZTs/ZCJx4YKQOHBDwIq34HnmBdhHQG13fjppkMgldurvq89fVeR0ZsjBGhyzE9jAiMwUWp87kkWBlAqcZ1ZMsvnHrevzM7l1Jq/fGZqMlFnsYzIlhxkukXsnjc5QF1JjLewrI7ALfVHgPmq5KrNkhIy70vn8DJfBnRttHSyqMm9LeL2AMlmfnwEASJFDa2u/LC2tbrRM2fKVJ1bCyOGTq6suZBl8dAVTqb1DG53I6xyYXWkOyYytlGEihzVoI9DmAer9wzWgKMprifn+ATYd6L2Aqn75KUEahakyRdL68P7X7+HWMXJSFzvksKMkTdNW57o5+PHD+19+hBvkKOco4GJdQUoDnlShLtx4E9EB04ceAeLOI94eO4HKbaUsg7fE+CTEg3XMeVvH4YLpNljyEoch8al1JHXRhbYUCtvwBG3yWktdhDM305lChyLckMhQ+wX0YL056LHexshQn/FxEmDUmSw/ewj35TGV4gF6VfWDnJt6c45Wx4myDG68BjdGEOiQplJL6ySHKMq6c2yfG+1w6aAHbMGkO5R4UmuiCzXiuxC6GYhuxeuxRBpf+/5iHaM2D/D8x59///UzXKxj/ObxUCP/Qs0gMBMDjryP2Kno6C8dMe7g9esvgdDOjLYII0PgzOxS4RwVzKWVQ6mkW0FyZ5HgBr/1knCK2nWaKFNqeoPWq5K0l0RslZYznVRMBrai3aZzpjzapNNJR1KLJKEcmF4FqiiNeQKkU+y1CXv+7Qd4dzJXsFViHK9TKaDzFNVgkSRT8js2VAgzRs6CGQVLhboeTDGy4TWt5xytzcGRx+6pfQduIPJt7vTgx4YQilzl8Gb4DXIXyOxrRxJtE6edhhQHTOYHz/MZJPsLs4H6Q9YhB68FjqRGEXblF35YEuRnQSICh77I7gbAx8gntqGsKey+y/LWgG2v4FDia6TLg20UCt0NmsNsPxCHol4kHUnlkBJVykilU7SWFZhKzZUXaJN2DCv3VadTLcijWanJZQOcOT6GJOyySqHrZjkGl6T1/PtPe0GOmFQo8lYXgvW/tGgdee48oYi+u5n83/obMWUbBRh7CF9bauDpCVp3eqLNQld1DeeeCEWrIYV1jE+2KcKlwSk2/dLloHEBr5jDpJM6M7h9cxv+PZImne61UHIyiA8W5lEytVUEzlGD0aGCJzx9ud05Hjfd87Ow/P4BUjCfLw=="
+    },
+    "trigger.config.ts": {
+      "contentHash": "462d314831aa76567266cae1036c5410",
+      "contents": "eJxlj8Fqg0AQhu+C7zB4akHUNvSyubQkIVgoLSG3UoLdHWUad1d2V6NN8u7FxFBi9rLDzPcN/5CstHGwB4E5KZxplVMBR8iNlhA8O0NFgSYS2MRWbONmEkx9z/ewPWkC86wu3ZV8t/c9AIDK6B/kjvUFR2sjVE20XqXL5WK1+Vi9vy5m6006h8MBgp7dtHJX73TDt8W2E01lVctFEJ6Xyayd1yZzpBWDSZKEEMfwBJJU7dBecpxZQcYy+Ayi2BoeDxcEXydl0VYlcXJlB7ZCTnkHA9BryJ023XmLQWcILYPhnP6hyr5LFKmaY8PAmRrD/+GQ4UoYor84h7JylsEkHA1JrUmirl2q3iyDhyRJxkjW3iBjJs/65AweR32TKaEl/eJN2uNQ9//xfup7f/oplmI="
+    },
+    "tsconfig.json": {
+      "contentHash": "ee17fd1c97c735e9f3564e3f5251f125",
+      "contents": "eJxtUU1Lw0AQvedXLHMMbaJehJ4E6cFiEfRYimyyQ7t2v9id1EjJf5fdJNVET8O8N2/2vdlLxhjUVjup0L84ktYEWLFLxhhjQNwfkGDFYP12d3N7D4seV7KCFduBsBoWLJZCEnpeKYw9BoMtwX6Y5krZz01cS77BAQwn6Z5l9XjE+jRjyMuappixay1nGIatFY3CJ0PorZuSOlHR+WBmgr9isKqJYeNE1Rih0I8jPpJn3ARrtuOWX5tlsIoTip6bpfoIbdzokde0jM0oMrVHjYa4mgqcag4ynXyXADacvk/NdYqQAgxwl+p4Wsfp+PNfjMFDmaefKcrg6zKHfTaKuiiJRlQj8Ppe2r1Ecy5EQWG0m+dl/re9pimiqKQvh6GcjfaUwPP/dGo1hZgmZQBsr4bAWIHverjrPuuyb0p5toA="
+    }
+  },
+  "target": "dev"
+}
