@@ -228,6 +228,10 @@ export const runWorkflow = async (
 
                 context.nodeResults.set(nodeId, {
                     output: geminiText, // ← MUST be a string
+                    _meta: {
+                        type: nodeType,
+                        label: node.data.label,
+                    }
                 });
 
                 if (onStatusChange) onStatusChange(nodeId, 'completed');
@@ -269,7 +273,13 @@ export const runWorkflow = async (
             }
 
             const output = await executor.execute(inputs, context);
-            context.nodeResults.set(nodeId, output);
+            context.nodeResults.set(nodeId, {
+                ...output,
+                _meta: {
+                    type: nodeType,
+                    label: node.data.label,
+                }
+            });
 
             if (onStatusChange) onStatusChange(nodeId, 'completed');
 

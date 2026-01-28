@@ -197,11 +197,22 @@ export const RunHistorySidebar = () => {
                                         Object.entries(run.payload.results).map(([nodeId, result]) => (
                                             <div key={nodeId} className="flex flex-col text-xs bg-white border border-slate-100 rounded-md p-2 shadow-sm">
                                                 <div className="flex items-center justify-between mb-1">
-                                                    <div className="flex items-center space-x-1.5">
-                                                        {result.status === 'success' && <CheckCircle className="w-3 h-3 text-emerald-500" />}
-                                                        {result.status === 'failed' && <XCircle className="w-3 h-3 text-red-500" />}
-                                                        {result.status === 'running' && <Activity className="w-3 h-3 text-blue-500 animate-pulse" />}
-                                                        <span className="font-medium text-slate-700">{nodeId}</span>
+                                                    <div className="flex items-center space-x-1.5 flex-1 min-w-0">
+                                                        {result.status === 'success' && <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />}
+                                                        {result.status === 'failed' && <XCircle className="w-3 h-3 text-red-500 shrink-0" />}
+                                                        {result.status === 'running' && <Activity className="w-3 h-3 text-blue-500 animate-pulse shrink-0" />}
+
+                                                        <div className="flex items-baseline space-x-2 truncate">
+                                                            {/* Node Name/Type */}
+                                                            <span className="font-medium text-slate-700 truncate">
+                                                                {/* @ts-ignore - dynamic data */}
+                                                                {result._meta?.label || (result._meta?.type ? result._meta.type.replace(/([A-Z])/g, ' $1').trim() : 'Node')}
+                                                            </span>
+                                                            {/* Node ID (truncated) */}
+                                                            <span className="text-[9px] text-slate-400 font-mono hidden sm:inline-block">
+                                                                #{nodeId.substring(0, 6)}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                     <span className="text-[10px] text-slate-400">
                                                         {result.duration ? `${result.duration}s` : '-'}
