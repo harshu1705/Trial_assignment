@@ -22,11 +22,16 @@ export async function GET(
                 createdAt: true,
                 status: true,
                 scope: true,
-                // Explicitly excluding payload for performance and simplified view
+                payload: true, // Include payload for node details
             },
         });
 
-        return NextResponse.json({ runs });
+        const formattedRuns = runs.map(run => ({
+            ...run,
+            payload: run.payload ? JSON.parse(run.payload) : null,
+        }));
+
+        return NextResponse.json({ runs: formattedRuns });
     } catch (error) {
         console.error("Failed to fetch workflow runs:", error);
         return NextResponse.json(

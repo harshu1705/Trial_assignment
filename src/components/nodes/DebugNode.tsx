@@ -22,11 +22,11 @@ export const DebugNode = ({ selected, data }: NodeProps) => {
         >
             <div className="flex flex-col space-y-4">
                 <div className="text-sm text-slate-600">
-                    <div className="bg-slate-900 text-green-400 p-3 rounded-md font-mono text-xs overflow-x-auto max-h-[200px] overflow-y-auto">
+                    <div className="bg-slate-50 border border-slate-200 text-slate-800 p-3 rounded-md font-mono text-xs overflow-x-auto max-h-[200px] overflow-y-auto">
                         {Object.keys(displayData).length > 0 ? (
-                            <pre>{JSON.stringify(displayData, null, 2)}</pre>
+                            <pre className="whitespace-pre-wrap break-all">{JSON.stringify(displayData, null, 2)}</pre>
                         ) : (
-                            <span className="opacity-50">// Waiting for data...</span>
+                            <span className="opacity-50 italic text-slate-400">// Waiting for data...</span>
                         )}
                     </div>
                 </div>
