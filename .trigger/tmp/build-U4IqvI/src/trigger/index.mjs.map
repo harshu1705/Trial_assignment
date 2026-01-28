@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../src/trigger/index.ts"],
+  "sourcesContent": ["// Export all tasks for Trigger.dev to discover\r\nexport * from \"./test-job\";\r\nexport * from \"./workflow\";\r\n"],
+  "mappings": ";;;;;;;;;;;;;;;;AAAA;",
+  "names": []
+}

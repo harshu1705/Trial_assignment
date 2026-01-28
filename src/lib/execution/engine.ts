@@ -227,9 +227,7 @@ export const runWorkflow = async (
                 context.log(nodeId, `Generated ${geminiText.length} characters`);
 
                 context.nodeResults.set(nodeId, {
-                    llmResponse: {
-                        text: geminiText,
-                    },
+                    output: geminiText, // ← MUST be a string
                 });
 
                 if (onStatusChange) onStatusChange(nodeId, 'completed');

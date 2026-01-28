@@ -22,8 +22,9 @@ export const workflowTask = task({
                 nodeStatus[nodeId] = status;
             });
 
-            // Extract LLM response for top-level visibility (User Requirement)
-            const llmResult = Array.from(context.nodeResults.values()).find((r: any) => r.llmResponse);
+            // Extract LLM response for top-level visibility
+            // We look for a node that has an 'output' string which is likely our LLM response
+            const llmNodeResult = Array.from(context.nodeResults.values()).find((r: any) => typeof r.output === 'string' && r.output.length > 0);
 
             console.log("✅ Workflow execution complete.");
 
@@ -32,7 +33,7 @@ export const workflowTask = task({
                 success: true,
                 executionId: context.executionId,
                 results: Object.fromEntries(context.nodeResults),
-                llmResponse: llmResult ? (llmResult as any).llmResponse : undefined, // Bubble up for debug/UI checks
+                llmResponse: llmNodeResult ? { text: (llmNodeResult as any).output } : undefined, // Wrap in object for consistent API/UI consumption if needed
                 logs: context.logs,
                 nodeStatus, // Per-node status for UI
                 nodesExecuted: context.logs.filter(l => l.message.includes('Executing')).length
