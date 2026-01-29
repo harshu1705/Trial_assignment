@@ -4,9 +4,16 @@ import { memo } from "react";
 import { BaseNode } from "./BaseNode";
 import { OutputHandle } from "./OutputHandle";
 import { Eye } from "lucide-react";
-import { NodeProps, Handle, Position } from "@xyflow/react";
+import { NodeProps, Handle, Position, useHandleConnections } from "@xyflow/react";
 
 export const VisionNode = memo(({ id, data, selected }: NodeProps) => {
+    // Check connections to disable inputs
+    const imageConnections = useHandleConnections({ type: 'target', id: 'image-url' });
+    const promptConnections = useHandleConnections({ type: 'target', id: 'text-prompt' });
+
+    const isImageConnected = imageConnections.length > 0;
+    const isPromptConnected = promptConnections.length > 0;
+
     const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (data.onChange) {
             data.onChange({ imageUrl: e.target.value });
@@ -21,44 +28,61 @@ export const VisionNode = memo(({ id, data, selected }: NodeProps) => {
 
     return (
         <BaseNode
-            id={id}
             icon={<Eye className="w-4 h-4" />}
             title="Vision Node"
-            subtitle="Image analysis"
             selected={selected}
-            status={data.status}
+            status={data.status as 'idle' | 'running' | 'completed' | 'error'}
         >
-            <Handle
-                type="target"
-                position={Position.Left}
-                className="!bg-slate-500 !w-3 !h-3 !border-2 !border-white hover:!bg-emerald-500 transition-colors"
-            />
-            <div className="space-y-3">
-                <div>
+            <div className="space-y-4">
+                <div className="relative">
+                    {/* Image Handle */}
+                    <Handle
+                        type="target"
+                        position={Position.Left}
+                        id="image-url"
+                        className="!bg-purple-500 !w-3 !h-3 !border-2 !border-white hover:!bg-purple-600 transition-colors top-8"
+                        title="Connect Image Output"
+                    />
                     <label className="text-xs font-medium text-slate-600">Image URL</label>
                     <input
                         type="text"
-                        value={data.imageUrl || ""}
+                        value={data.imageUrl as string || ""}
                         onChange={handleImageUrlChange}
-                        placeholder="https://example.com/image.jpg"
-                        className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder={isImageConnected ? "Provided by connection" : "https://example.com/image.jpg"}
+                        disabled={isImageConnected}
+                        className={`w-full mt-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${isImageConnected
+                            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                            : "bg-white border-slate-200"
+                            }`}
                     />
                 </div>
 
-                <div>
-                    <label className="text-xs font-medium text-slate-600">Analysis Prompt (optional)</label>
+                <div className="relative">
+                    {/* Prompt Handle */}
+                    <Handle
+                        type="target"
+                        position={Position.Left}
+                        id="text-prompt"
+                        className="!bg-slate-500 !w-3 !h-3 !border-2 !border-white hover:!bg-emerald-500 transition-colors top-8"
+                        title="Connect Text Prompt"
+                    />
+                    <label className="text-xs font-medium text-slate-600">Analysis Prompt</label>
                     <input
                         type="text"
-                        value={data.prompt || "Describe this image"}
+                        value={data.prompt as string || "Describe this image"}
                         onChange={handlePromptChange}
-                        placeholder="What should the AI analyze?"
-                        className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder={isPromptConnected ? "Provided by connection" : "What should the AI analyze?"}
+                        disabled={isPromptConnected}
+                        className={`w-full mt-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${isPromptConnected
+                            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                            : "bg-white border-slate-200"
+                            }`}
                     />
                 </div>
             </div>
 
             <div className="mt-3">
-                <OutputHandle label="Description" />
+                <OutputHandle id="text-description" label="Description" />
             </div>
         </BaseNode>
     );

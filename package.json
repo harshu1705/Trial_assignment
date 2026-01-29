@@ -19,7 +19,9 @@
     "react-dom": "19.2.3",
     "react-textarea-autosize": "^8.5.9",
     "tailwind-merge": "^3.4.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zundo": "^2.3.0",
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@prisma/client": "^5.10.0",

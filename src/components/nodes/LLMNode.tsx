@@ -4,9 +4,18 @@ import { memo } from "react";
 import { BaseNode } from "./BaseNode";
 import { OutputHandle } from "./OutputHandle";
 import { Sparkles } from "lucide-react";
-import { NodeProps, Handle, Position } from "@xyflow/react";
+import { NodeProps, Handle, Position, useHandleConnections } from "@xyflow/react";
 
 export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
+    const connections = useHandleConnections({ type: 'target', id: 'text-prompt' });
+    const isConnected = connections.length > 0;
+
+    const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        if (typeof data.onChange === 'function') {
+            data.onChange({ ...data, prompt: e.target.value });
+        }
+    };
+
     return (
         <BaseNode
             icon={<Sparkles className="w-4 h-4" />}
@@ -18,15 +27,20 @@ export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
                 type="target"
                 position={Position.Left}
                 className="!bg-slate-500 !w-3 !h-3 !border-2 !border-white hover:!bg-emerald-500 transition-colors"
-                id="prompt-input"
+                id="text-prompt"
+                title="Connect Text Prompt"
             />
             <div className="space-y-2">
                 <label className="text-xs font-medium text-slate-600">Prompt Source</label>
                 <textarea
                     value={(data.prompt as string) || (data.text as string) || ""}
-                    readOnly
-                    placeholder="Connect a Text node to provide input prompt..."
-                    className="w-full px-3 py-2 text-sm border border-slate-200 bg-slate-50 text-slate-500 rounded-md focus:outline-none resize-none cursor-not-allowed"
+                    onChange={handlePromptChange}
+                    readOnly={isConnected}
+                    placeholder={isConnected ? "Provided by connection" : "Enter prompt here..."}
+                    className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none ${isConnected
+                        ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                        : "bg-white border-slate-200 text-slate-700"
+                        }`}
                     rows={3}
                 />
             </div>
@@ -68,7 +82,7 @@ export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
             )}
 
             <div className="mt-3">
-                <OutputHandle id="response" label="AI Response" />
+                <OutputHandle id="text-response" label="AI Response" />
             </div>
         </BaseNode>
     );

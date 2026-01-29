@@ -53,7 +53,7 @@ export const TextNode = ({ selected, data }: NodeProps) => {
                     <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider pl-1">
                         Source
                     </span>
-                    <OutputHandle id="text" label="text" />
+                    <OutputHandle id="text-source" label="text" />
                 </div>
             </div>
         </BaseNode>

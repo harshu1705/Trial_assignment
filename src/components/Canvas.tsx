@@ -1,59 +1,69 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
     ReactFlow,
     Background,
     Controls,
     MiniMap,
-    useNodesState,
-    useEdgesState,
-    addEdge,
     Connection,
     Edge,
     Node,
     Panel,
     ReactFlowProvider,
     useReactFlow,
-    ReactFlowInstance,
+    EdgeChange,
+    NodeChange,
 } from "@xyflow/react";
 import { nodeRegistry } from "./nodes/nodeRegistry";
-import { Play } from "lucide-react";
-
+import { Play, RotateCcw, RotateCw } from "lucide-react";
+import { useFlowStore, isCyclic } from "@/lib/store";
+import { useShallow } from 'zustand/react/shallow';
 
 import "@xyflow/react/dist/style.css";
 
-
-const initialNodes: Node[] = [
-    {
-        id: "1",
-        type: "text",
-        position: { x: 100, y: 100 },
-        data: { value: "Hello World" },
-    },
-    {
-        id: "2",
-        type: "debug",
-        position: { x: 500, y: 150 },
-        data: {},
-    },
-];
-
-const initialEdges: Edge[] = [];
-
-// Inner component to use ReactFlow hooks
+// Separate Flow component to use hooks
 const Flow = () => {
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    // Select state from store
+    const {
+        nodes,
+        edges,
+        onNodesChange,
+        onEdgesChange,
+        onConnect,
+        addNode
+    } = useFlowStore(useShallow((state) => ({
+        nodes: state.nodes,
+        edges: state.edges,
+        onNodesChange: state.onNodesChange,
+        onEdgesChange: state.onEdgesChange,
+        onConnect: state.onConnect,
+        addNode: state.addNode,
+    })));
+
     const [isRunning, setIsRunning] = useState(false);
     const [runStatus, setRunStatus] = useState<"IDLE" | "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED">("IDLE");
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
-    const { screenToFlowPosition } = useReactFlow();
+    const { screenToFlowPosition, getNodes, getEdges } = useReactFlow();
 
-    const onConnect = useCallback(
-        (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-        [setEdges]
-    );
+    // Undo/Redo via keyboard
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
+                if (event.shiftKey) {
+                    useFlowStore.temporal.getState().redo();
+                } else {
+                    useFlowStore.temporal.getState().undo();
+                }
+            }
+            if ((event.metaKey || event.ctrlKey) && event.key === 'y') {
+                useFlowStore.temporal.getState().redo();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const onDragOver = useCallback((event: React.DragEvent) => {
         event.preventDefault();
@@ -66,7 +76,6 @@ const Flow = () => {
 
             const type = event.dataTransfer.getData("application/reactflow");
 
-            // Check if the dropped element is valid
             if (typeof type === "undefined" || !type) {
                 return;
             }
@@ -80,22 +89,54 @@ const Flow = () => {
                 id: crypto.randomUUID(),
                 type,
                 position,
-                data: { label: `${type} node` }, // Basic data
+                data: { label: `${type} node` },
             };
 
-            setNodes((nds) => nds.concat(newNode));
+            addNode(newNode);
         },
-        [screenToFlowPosition, setNodes]
+        [screenToFlowPosition, addNode]
     );
 
+    const isValidConnection = useCallback((connection: Connection | Edge) => {
+        // 1. Type Validation (Strict Handle Types)
+        // Handles are named: type-role, e.g. "text-source", "text-prompt", "image-url"
+        const sourceHandle = connection.sourceHandle;
+        const targetHandle = connection.targetHandle;
+
+        if (sourceHandle && targetHandle) {
+            const sourceType = sourceHandle.split('-')[0];
+            const targetType = targetHandle.split('-')[0];
+
+            if (sourceType !== targetType) {
+                return false; // Type mismatch (e.g. text -> image)
+            }
+        }
+
+        // 2. Cycle Detection
+        // uses current nodes/edges from store (or hook)
+        // Pass current store nodes/edges
+        // Using getNodes/getEdges from ReactFlow hook to ensure fresh state if store lags slightly, 
+        // but store is source of truth.
+        const currentNodes = useFlowStore.getState().nodes;
+        const currentEdges = useFlowStore.getState().edges; // Edges before connection
+
+        // Pass as Connection to match utility signature
+        if (isCyclic(currentNodes, currentEdges, connection as Connection)) {
+            return false;
+        }
+
+        return true;
+    }, []);
+
+
+    // Helper for polling (unchanged mainly, but updates store)
     const pollRunStatus = async (runId: string) => {
-        const pollInterval = 1000; // 1 second
-        const maxAttempts = 300; // 5 minutes approx
+        const pollInterval = 1000;
+        const maxAttempts = 300;
         let attempts = 0;
 
         const checkStatus = async () => {
             if (attempts >= maxAttempts) {
-                console.log("Polling timeout");
                 setRunStatus("FAILED");
                 setIsRunning(false);
                 return;
@@ -104,52 +145,40 @@ const Flow = () => {
             try {
                 const response = await fetch(`/api/execute/${runId}`);
                 if (!response.ok) throw new Error("Failed to fetch status");
-
                 const data = await response.json();
-                console.log("Poll status:", data.status);
 
-                // Map Trigger.dev status to our UI status
-                // Trigger.dev statuses: "WAITING", "QUEUED", "EXECUTING", "COMPLETED", "FAILED", "CANCELED", "TIMED_OUT"
                 let currentStatus: typeof runStatus = "RUNNING";
-                if (data.status === "QUEUED" || data.status === "WAITING") {
-                    currentStatus = "QUEUED";
-                } else if (data.status === "COMPLETED") {
-                    currentStatus = "COMPLETED";
-                } else if (["FAILED", "CANCELED", "TIMED_OUT", "CRASHED"].includes(data.status)) {
-                    currentStatus = "FAILED";
-                }
+                if (data.status === "QUEUED" || data.status === "WAITING") currentStatus = "QUEUED";
+                else if (data.status === "COMPLETED") currentStatus = "COMPLETED";
+                else if (["FAILED", "CANCELED", "TIMED_OUT", "CRASHED"].includes(data.status)) currentStatus = "FAILED";
 
                 setRunStatus(currentStatus);
 
-                // Update individual node statuses AND outputs if available
                 if (data.output?.nodeStatus) {
                     const nodeStatusMap = data.output.nodeStatus;
-                    const results = data.output.results || {}; // Get results from the output
+                    const results = data.output.results || {};
 
-                    setNodes((nds) =>
-                        nds.map((n) => {
-                            // Merge existing data with execution results (if any for this node)
-                            // This allows nodes to display their computed output
-                            const executionResult = results[n.id] || {};
+                    // Update Store
+                    const currentNodes = useFlowStore.getState().nodes;
+                    const updatedNodes = currentNodes.map((n) => {
+                        const executionResult = results[n.id] || {};
+                        return {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                ...executionResult,
+                                status: nodeStatusMap[n.id] || (currentStatus === "RUNNING" ? 'running' : n.data.status)
+                            }
+                        };
+                    });
 
-                            return {
-                                ...n,
-                                data: {
-                                    ...n.data,
-                                    ...executionResult, // Spread result properties (e.g. value, outputUrl)
-                                    status: nodeStatusMap[n.id] || (currentStatus === "RUNNING" ? 'running' : n.data.status)
-                                },
-                            };
-                        })
-                    );
+                    useFlowStore.getState().setNodes(updatedNodes);
                 }
 
                 if (currentStatus === "COMPLETED" || currentStatus === "FAILED") {
                     setIsRunning(false);
-                    if (currentStatus === "FAILED") {
-                        alert(`Workflow execution failed: ${data.error ? JSON.stringify(data.error) : "Unknown error"}`);
-                    }
-                    return; // Stop polling
+                    if (currentStatus === "FAILED") alert(`Workflow execution failed: ${data.error ? JSON.stringify(data.error) : "Unknown error"}`);
+                    return;
                 }
 
                 attempts++;
@@ -157,27 +186,23 @@ const Flow = () => {
 
             } catch (error) {
                 console.error("Polling error:", error);
-                // Don't stop polling immediately on network error, might be transient
                 attempts++;
                 setTimeout(checkStatus, pollInterval);
             }
         };
-
-        // Start polling
         checkStatus();
     };
+
 
     const handleRunWorkflow = async () => {
         if (isRunning) return;
         setIsRunning(true);
         setRunStatus("QUEUED");
 
+        const currentNodes = useFlowStore.getState().nodes;
         // Reset node states
-        setNodes((nds) =>
-            nds.map((n) => ({
-                ...n,
-                data: { ...n.data, status: 'idle' },
-            }))
+        useFlowStore.getState().setNodes(
+            currentNodes.map(n => ({ ...n, data: { ...n.data, status: 'idle' } }))
         );
 
         try {
@@ -187,24 +212,15 @@ const Flow = () => {
                 body: JSON.stringify({ nodes, edges }),
             });
 
-            let data;
-            try {
-                data = await response.json();
-            } catch {
-                throw new Error("Server returned non-JSON response");
-            }
-
-            if (!response.ok || !data.success) {
-                throw new Error(data?.error || 'Failed to trigger workflow');
-            }
+            if (!response.ok) throw new Error('Failed to trigger workflow');
+            const data = await response.json();
+            if (!data.success) throw new Error(data?.error || 'Failed to trigger workflow');
 
             console.log('Workflow triggered, Run ID:', data.runId);
-
-            // Start polling as the API now returns immediately
             pollRunStatus(data.runId);
 
         } catch (error: any) {
-            console.error("Workflow trigger failed", error);
+            console.error(error);
             alert(`Error: ${error.message}`);
             setIsRunning(false);
             setRunStatus("FAILED");
@@ -219,21 +235,34 @@ const Flow = () => {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                isValidConnection={isValidConnection} // Validation hook
                 nodeTypes={nodeRegistry}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 fitView
+                deleteKeyCode={["Backspace", "Delete"]} // Ensure delete works
+                multiSelectionKeyCode={["Control", "Meta"]}
             >
                 <Background />
                 <Controls />
                 <MiniMap />
 
-                <Panel position="top-right" className="p-4">
+                <Panel position="top-right" className="flex gap-2 p-4">
+                    {/* Undo/Redo Buttons (Optional visual aid) */}
+                    <div className="flex bg-white rounded-lg shadow-sm border border-slate-200 mr-4">
+                        <button onClick={() => useFlowStore.temporal.getState().undo()} className="p-2 hover:bg-slate-50 text-slate-600 rounded-l-lg border-r border-slate-100" title="Undo (Ctrl+Z)">
+                            <RotateCcw className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => useFlowStore.temporal.getState().redo()} className="p-2 hover:bg-slate-50 text-slate-600 rounded-r-lg" title="Redo (Ctrl+Y)">
+                            <RotateCw className="w-4 h-4" />
+                        </button>
+                    </div>
+
                     <button
                         onClick={handleRunWorkflow}
                         disabled={isRunning}
                         className={`
-                            flex items-center space-x-2 px-6 py-3 rounded-full font-bold shadow-lg transition-all
+                            flex items-center space-x-2 px-6 py-2 rounded-full font-bold shadow-lg transition-all
                             ${isRunning
                                 ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                                 : "bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 active:scale-95"}
@@ -241,22 +270,17 @@ const Flow = () => {
                     >
                         <Play className={`w-5 h-5 ${isRunning ? "animate-pulse" : "fill-current"}`} />
                         <span>
-                            {runStatus === "QUEUED" ? "Queued..." :
-                                runStatus === "RUNNING" ? "Running..." :
-                                    "Run Workflow"}
+                            {runStatus === "QUEUED" ? "Queued" :
+                                runStatus === "RUNNING" ? "Running" :
+                                    "Run"}
                         </span>
                     </button>
-                    {runStatus === "FAILED" && (
-                        <div className="mt-2 text-red-500 text-sm font-medium text-center bg-white/80 p-2 rounded shadow">
-                            Last Run Failed
-                        </div>
-                    )}
                 </Panel>
             </ReactFlow>
             {nodes.length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                     <p className="text-slate-500 text-lg font-medium opacity-50 select-none">
-                        Drag nodes from the sidebar to start building your workflow
+                        Drag nodes from the sidebar to start
                     </p>
                 </div>
             )}

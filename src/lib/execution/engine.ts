@@ -221,6 +221,14 @@ export const runWorkflow = async (
                 const startTime = Date.now();
                 context.log(nodeId, `Executing LLM Node with prompt: "${prompt.substring(0, 50)}..."`);
 
+                // SIMULATION: Delay for 2.5 seconds to demonstrate Yellow/Red duration
+                await new Promise(resolve => setTimeout(resolve, 2500));
+
+                // SIMULATION: Force failure if prompt contains "fail"
+                if (prompt.toLowerCase().includes("fail")) {
+                    throw new Error("Simulated failure: Invalid input detected in LLM Node.");
+                }
+
                 const geminiText = await executeLLMNode({
                     prompt: prompt,
                 });
@@ -231,6 +239,7 @@ export const runWorkflow = async (
 
                 context.nodeResults.set(nodeId, {
                     output: geminiText, // ← MUST be a string
+                    status: 'success',
                     _meta: {
                         type: nodeType,
                         label: node.data.label,
@@ -245,11 +254,27 @@ export const runWorkflow = async (
                 continue; // Skip generic executor
 
             } catch (error: any) {
+                const endTime = Date.now(); // Capture time even on failure
                 context.log(nodeId, `Error in LLM execution: ${error.message}`);
                 console.error(`[${nodeId}] Full Error Stack:`, error);
+
+                // Store failed result
+                context.nodeResults.set(nodeId, {
+                    status: 'failed',
+                    error: error.message,
+                    _meta: {
+                        type: nodeType,
+                        label: node.data.label,
+                        startTime: Date.now(), // Approximate
+                        endTime,
+                        duration: 0, // Failed nodes can have 0 duration or track it
+                        inputs: { ...node.data }, // Best effort inputs
+                    }
+                });
+
                 if (onStatusChange) onStatusChange(nodeId, 'error');
-                // We rethrow so the workflow engine knows it failed
-                throw error;
+                // Break loop instead of throwing to allow partial result return
+                break;
             }
         }
 
@@ -286,6 +311,7 @@ export const runWorkflow = async (
 
             context.nodeResults.set(nodeId, {
                 ...output,
+                status: 'success',
                 _meta: {
                     type: nodeType,
                     label: node.data.label,
@@ -300,8 +326,23 @@ export const runWorkflow = async (
 
         } catch (error: any) {
             context.log(nodeId, `Error executing node: ${error.message}`);
+
+            // Store failed result
+            context.nodeResults.set(nodeId, {
+                status: 'failed',
+                error: error.message,
+                _meta: {
+                    type: nodeType,
+                    label: node.data.label,
+                    startTime: Date.now(),
+                    endTime: Date.now(),
+                    duration: 0,
+                    inputs: { ...node.data },
+                }
+            });
+
             if (onStatusChange) onStatusChange(nodeId, 'error');
-            throw error; // Stop execution on error for now
+            break; // Stop execution on error
         }
     }
 
