@@ -13,7 +13,7 @@ export const BaseNode = ({ title, icon, children, selected, status = 'idle' }: B
     return (
         <div
             className={cn(
-                "w-[300px] bg-white rounded-xl shadow-sm border border-slate-200 transition-all duration-200",
+                "w-[280px] min-w-[280px] max-w-[280px] flex-none bg-white rounded-xl shadow-sm border border-slate-200 transition-all duration-200 box-border",
                 "hover:border-slate-300 hover:shadow-md",
                 selected && "ring-2 ring-emerald-500 border-emerald-500 shadow-md ring-offset-2",
 

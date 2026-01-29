@@ -36,7 +36,7 @@ export const TextNode = ({ selected, data }: NodeProps) => {
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         placeholder="Enter text input..."
-                        className="w-full p-2 text-sm text-slate-700 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none font-mono nodrag transition-colors"
+                        className="w-full p-2 text-sm text-slate-700 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none font-mono nodrag transition-colors max-h-[120px]"
                         readOnly={false} // Future proofing for read-only mode
                     />
 

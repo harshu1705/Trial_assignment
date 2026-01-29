@@ -90,6 +90,7 @@ const Flow = () => {
                 type,
                 position,
                 data: { label: `${type} node` },
+                style: { width: 280 },
             };
 
             addNode(newNode);
