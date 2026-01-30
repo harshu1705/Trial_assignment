@@ -1,285 +1,120 @@
-# Galaxy.ai - AI Workflow Editor
+# 🧠 AI Workflow Automation Platform
 
-A production-ready AI workflow builder built with **Next.js 16**, **React Flow**, **Trigger.dev**, and **PostgreSQL**. 
+![Project Banner](public/screenshots/banner.png)
+*(Note: Please add a screenshot of the main canvas here and name it `banner.png` in the public/screenshots folder)*
 
-## 🚀 Key Features
+## 🚀 Overview
+This project is a **visual, node-based editor** for building and orchestrating complex AI workflows. Built with **Next.js 14** and **React Flow**, it allows users to chain together Large Language Models (LLMs), image processors, and other utility nodes into intelligent pipelines.
 
--   **Canvas-Based Editing**: Drag-and-drop interface powered by React Flow
--   **8 Node Types**: Text, LLM, Vision, Upload Image, Upload Video, Crop Image, Extract Frame, Debug
--   **File Uploads**: Transloadit integration for image/video uploads (max 50MB images, 500MB videos)
--   **Image Processing**: FFmpeg crop with coordinate inputs
--   **Video Processing**: FFmpeg frame extraction with timestamps
--   **Deterministic Execution**: Custom DAG executor using topological sort
--   **Serverless Jobs**: Background execution via Trigger.dev with no timeouts
--   **User Authentication**: Clerk auth with complete user data isolation
--   **Workflow Persistence**: Save/load/export workflows from PostgreSQL
--   **Execution History**: Track all runs with node-level details
--   **Real-time Status**: Beautiful animations - dot grid, pulsating glow, animated edges
--   **Multi-Provider AI**: Google Gemini + Groq with automatic fallbacks
+It features a real-time execution engine powered by **Google Gemini**, capable of handling multimodal inputs (Text + Images) and persisting execution history for later review.
 
-## 🛠️ Tech Stack
+## ✨ Key Features
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS 4, React Flow v12
-- **Backend**: Next.js API Routes, Trigger.dev SDK v4, Prisma ORM
-- **Database**: PostgreSQL 13+
-- **Authentication**: Clerk
-- **File Processing**: Transloadit (uploads), FFmpeg (video/image processing)
-- **AI**: Google Gemini API, Groq API
-- **State**: Zustand + Zundo (undo/redo)
+### 1. Visual Workflow Builder
+- **Drag-and-Drop Interface:** Intuitive canvas for arranging nodes.
+- **Smart Connection Validation:** Prevents invalid connections (e.g., Image → Text) and detects cycles (DAG validation).
+- **Custom Nodes:**
+  - **LLM Node:** Multimodal input support (System Prompt, User Message, Images). Inline streaming responses.
+  - **Multimedia Nodes:** Upload Image/Video, Crop Image, Extract Frame from Video.
+  - **Logic Nodes:** Text input, System instructions.
 
-## 📋 Prerequisites
+### 2. Intelligent Execution Engine
+- **Multimodal Processing:** Connect a cropped image and a video frame directly to an LLM context.
+- **Real-time Feedback:** Visual status indicators (Running, Success, Failed) on every node.
+- **Secure Integration:** Server-side execution using Google Gemini API.
 
-- Node.js 18+ (v20 recommended)
-- PostgreSQL 13+
+### 3. Workflow History & Persistence
+- **Run History Sidebar:** Auto-updating list of all past executions.
+- **Deep Inspection:** Click any run to see exactly what went into and came out of every node (Tokens, Latency, Errors).
+- **Database Persistence:** All workflow states and run results are saved to a tailored SQLite database via Prisma.
+
+### 4. Enterprise-Grade Architecture
+- **Authentication:** Clerk integration for secure user management.
+- **Type Safety:** Full TypeScript implementation across Frontend and Backend.
+- **Clean Code:** Modular architecture separating UI (React Flow) from Logic (Execution Engine).
+
+## 🛠️ Technology Stack
+
+| Category | Technologies |
+|----------|-------------|
+| **Frontend** | Next.js 14, React, Tailwind CSS, React Flow (@xyflow/react), Lucide Icons |
+| **Backend** | Next.js API Routes, Node.js |
+| **Database** | SQLite, Prisma ORM |
+| **AI / ML** | Google Gemini Pro Vision (via Google Generative AI SDK) |
+| **Auth** | Clerk |
+| **State** | Zustand (with Temporal middleware for Undo/Redo) |
+
+## 📸 visual Tour
+
+### The Editor Canvas
+> The core workspace where users build their AI logic.
+![Canvas Screenshot](public/screenshots/canvas.png)
+
+### LLM Node (Multimodal)
+> An LLM node accepting both text prompt and image inputs.
+![LLM Node](public/screenshots/llm-node.png)
+
+### Execution History
+> Detailed logs of every step in the pipeline.
+![History Sidebar](public/screenshots/history.png)
+
+## 🏃‍♂️ Getting Started
+
+### Prerequisites
+- Node.js 18+
 - npm or pnpm
-- Clerk account (free tier OK)
-- Trigger.dev account (free tier OK)
+- A Google Gemini API Key
 
-## 🏃‍♂️ Quick Start
+### Installation
 
-### 1. Clone & Install
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/ai-workflow-platform.git
+   cd ai-workflow-platform
+   ```
 
-```bash
-git clone <your-repo>
-cd assignment-fullstack
-npm install
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-### 2. Database Setup
+3. **Configure Environment**
+   Create a `.env` file:
+   ```env
+   # Database
+   DATABASE_URL="file:./dev.db"
 
-```bash
-# Create PostgreSQL database
-createdb galaxy_ai
+   # Auth (Clerk)
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+   CLERK_SECRET_KEY=sk_test_...
 
-# Run migrations
-npx prisma migrate dev --name init
-npx prisma generate
+   # AI Provider
+   GEMINI_API_KEY=AIzaSy...
+   ```
 
-# (Optional) View database
-npx prisma studio
-```
+4. **Initialize Database**
+   ```bash
+   npx prisma migrate dev --name init
+   ```
 
-### 3. Environment Variables
+5. **Run the Development Server**
+   ```bash
+   npm run dev
+   ```
 
-Create `.env.local`:
+## 🏗️ Architecture Highlights
 
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/galaxy_ai"
+### Data Model
+The project uses a relational schema to track:
+- **Workflows:** JSON definition of nodes and edges.
+- **Runs:** Execution instances with status and timing.
+- **NodeResults:** Granular output and error logs for each step.
 
-# Authentication (from Clerk)
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-
-# Background Jobs (from Trigger.dev)
-TRIGGER_API_KEY=tr_dev_...
-TRIGGER_API_URL=https://api.trigger.dev
-
-# AI (from Google Cloud & Groq)
-GOOGLE_GENERATIVE_AI_API_KEY=AIza...
-GROQ_API_KEY=gsk_...
-
-# File Uploads (from Transloadit)
-TRANSLOADIT_AUTH_KEY=your_key
-TRANSLOADIT_SECRET=your_secret
-```
-
-### 4. Run Development
-
-**Terminal 1 - Next.js App:**
-```bash
-npm run dev
-```
-
-**Terminal 2 - Trigger.dev Worker:**
-```bash
-npx trigger.dev dev
-```
-
-Visit http://localhost:3000
-
-## 📖 API Reference
-
-### Authentication
-All endpoints require Clerk authentication. User data automatically isolated by userId.
-
-### Workflows
-```bash
-GET    /api/workflows              # List user's workflows
-POST   /api/workflows              # Create new workflow
-GET    /api/workflows/[id]         # Get workflow details
-PUT    /api/workflows/[id]         # Update workflow
-DELETE /api/workflows/[id]         # Delete workflow
-```
-
-### Execution
-```bash
-POST   /api/execute                # Start workflow execution
-GET    /api/execute/[runId]        # Get execution status & results
-GET    /api/runs                   # List execution history
-```
-
-## 🎨 Node Types
-
-### Input Nodes
-| Node | Purpose | Output |
-|------|---------|--------|
-| **Text** | Enter text input | text |
-| **Upload Image** | Upload JPG/PNG images | image-url |
-| **Upload Video** | Upload MP4/WebM videos | video-url |
-
-### Processing Nodes
-| Node | Purpose | Input | Output |
-|------|---------|-------|--------|
-| **LLM** | Generate text (Gemini/Groq) | text/image | text |
-| **Vision** | Analyze images | image | analysis |
-| **Crop Image** | Crop by coordinates | image | cropped-image |
-| **Extract Frame** | Extract frame at timestamp | video | frame |
-
-### Utility
-| Node | Purpose |
-|------|---------|
-| **Debug** | Inspect data at any point |
-
-## 🔐 Security & Data
-
-- ✅ All routes protected with Clerk authentication
-- ✅ User data isolated at database level (userId foreign keys)
-- ✅ Ownership verification on all user resources
-- ✅ No cross-user data leakage
-- ✅ Secure API routes with Zod validation
-
-## 📊 Database Schema
-
-### User
-- id, clerkId (unique), email (unique), name, avatar
-- Relations: workflows[], runs[]
-
-### Workflow
-- id, userId, name, description, nodes (JSON), edges (JSON)
-- Relations: runs[], user
-
-### WorkflowRun
-- id, userId, workflowId, status, input/output (JSON), errorMessage
-- Relations: nodeResults[], executionLogs[], user, workflow
-
-### NodeResult
-- id, runId, nodeId, nodeType, status, input/output (JSON), error
-- Tracks individual node execution details
-
-### ExecutionLog
-- id, runId, level, message, timestamp
-- Audit trail of execution events
-
-## 🚀 Deployment
-
-### Vercel
-
-```bash
-# Set environment variables in Vercel dashboard
-# Then push to GitHub
-
-git add .
-git commit -m "Production ready"
-git push origin main
-```
-
-Vercel auto-deploys on push.
-
-### PostgreSQL Connection
-
-For production, use:
-- Vercel Postgres (easy, integrated)
-- AWS RDS (reliable, scalable)
-- Railway (cheap, easy)
-- PlanetScale (MySQL alternative)
-
-Update `DATABASE_URL` in Vercel environment variables.
-
-## 🧪 Testing
-
-```bash
-# Run tests
-npm test
-
-# Check types
-npm run type-check
-
-# Lint code
-npm run lint
-```
-
-## 📚 Project Structure
-
-```
-src/
-├─ app/
-│  ├─ api/
-│  │  ├─ execute/              # Workflow execution
-│  │  ├─ runs/                 # Execution history
-│  │  └─ workflows/            # Workflow CRUD
-│  ├─ dashboard/               # Main app
-│  └─ (auth)/                  # Auth pages (Clerk)
-├─ components/
-│  ├─ Canvas.tsx               # Main editor
-│  ├─ NodesSidebar.tsx         # Node palette
-│  ├─ RunHistorySidebar.tsx    # Run history
-│  └─ nodes/                   # 8 node types
-├─ lib/
-│  ├─ auth.ts                  # Auth utilities
-│  ├─ store.ts                 # Zustand state
-│  ├─ execution/
-│  │  ├─ engine.ts             # DAG executor
-│  │  └─ nodes/                # Node executors
-│  └─ prisma.ts                # DB client
-├─ trigger/                     # Trigger.dev tasks
-└─ middleware.ts                # Route protection
-
-prisma/
-├─ schema.prisma               # Database schema
-└─ migrations/                 # Migration history
-```
-
-## 🎓 Architecture Highlights
-
-### Execution Engine
-- **Kahn's Algorithm**: Topological sort for deterministic execution order
-- **Cycle Detection**: Prevents infinite loops
-- **Data Flow**: Node results accessible to downstream nodes
-- **Error Handling**: Graceful failure with detailed error messages
-
-### State Management
-- **Zustand**: Simple, lightweight state store
-- **Zundo**: Undo/Redo support
-- **Shallow selectors**: Prevent unnecessary re-renders
-
-### API Design
-- **RESTful**: Standard HTTP verbs (GET, POST, PUT, DELETE)
-- **Authenticated**: All routes require Clerk auth
-- **Scoped**: Queries automatically filtered by userId
-- **Validated**: Zod schemas validate all inputs
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create feature branch: `git checkout -b feature/my-feature`
-3. Commit: `git commit -m "Add feature"`
-4. Push: `git push origin feature/my-feature`
-5. Open PR
-
-## 📝 License
-
-MIT
-
-## 🙋 Support
-
-For issues or questions:
-1. Check existing issues/PRs
-2. Create new issue with details
-3. Include error logs and reproduction steps
+### Execution Flow
+1. **Validation:** The engine validates the Directed Acyclic Graph (DAG) before running.
+2. **Topological Sort:** Determines the correct execution order.
+3. **Execution:** Nodes are processed sequentially (or in parallel where possible), passing data context to downstream nodes.
+4. **Persistence:** State is constantly synced to the DB for history tracking.
 
 ---
-
-**Built with ❤️ for the Fullstack Engineer Assignment**
-
-Latest Update: January 30, 2026
+*Built as a Full Stack Production Assignment.*
