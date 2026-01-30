@@ -116,6 +116,11 @@ const Flow = () => {
             const sourceType = sourceHandle.split('-')[0];
             const targetType = targetHandle.split('-')[0];
 
+            // Allow Image -> Text connections (e.g. Image URL to LLM)
+            if (sourceType === 'image' && targetType === 'text') {
+                return true;
+            }
+
             if (sourceType !== targetType) {
                 return false;
             }
