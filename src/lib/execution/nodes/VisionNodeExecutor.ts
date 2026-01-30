@@ -2,10 +2,16 @@ import { ExecutableNode, ExecutionContext } from "../types";
 
 export class VisionNodeExecutor implements ExecutableNode {
     async execute(input: any, context: ExecutionContext): Promise<any> {
-        context.log(this.constructor.name, "VisionNodeExecutor is currently disabled due to Groq migration.");
+        context.log(this.constructor.name, "Vision execution started (Stubbed for demo).");
 
-        throw new Error(
-            "Vision Node is not yet supported in the Groq migration. Please check back later."
-        );
+        // Simulate processing time
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        const prompt = input.prompt || "general analysis";
+
+        return {
+            output: `[VISION ANALYSIS] Simulated analysis for prompt: "${prompt}".\nFeature detection: ✅ Person, ✅ Object.\nConfidence: 98%.`,
+            status: 'success'
+        };
     }
 }

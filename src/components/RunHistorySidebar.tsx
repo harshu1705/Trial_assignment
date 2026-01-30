@@ -131,7 +131,7 @@ export const RunHistorySidebar = () => {
             case 'failure':
                 return 'bg-red-100 text-red-700 border-red-200';
             case 'partial':
-                return 'bg-amber-100 text-amber-700 border-amber-200';
+                return 'bg-amber-100 text-amber-700 border-amber-200 ring-1 ring-amber-50';
             default:
                 return 'bg-slate-100 text-slate-700 border-slate-200';
         }

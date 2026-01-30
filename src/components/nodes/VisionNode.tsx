@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState, useEffect } from "react";
 import { BaseNode } from "./BaseNode";
 import { OutputHandle } from "./OutputHandle";
 import { Eye } from "lucide-react";
@@ -14,17 +14,13 @@ export const VisionNode = memo(({ id, data, selected }: NodeProps) => {
     const isImageConnected = imageConnections.length > 0;
     const isPromptConnected = promptConnections.length > 0;
 
-    const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (data.onChange) {
-            data.onChange({ imageUrl: e.target.value });
-        }
-    };
+    const [imageUrl, setImageUrl] = useState(data.imageUrl as string || "");
+    const [prompt, setPrompt] = useState(data.prompt as string || "Describe this image");
 
-    const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (data.onChange) {
-            data.onChange({ ...data, prompt: e.target.value });
-        }
-    };
+    useEffect(() => {
+        data.imageUrl = imageUrl;
+        data.prompt = prompt;
+    }, [imageUrl, prompt, data]);
 
     return (
         <BaseNode
@@ -46,8 +42,8 @@ export const VisionNode = memo(({ id, data, selected }: NodeProps) => {
                     <label className="text-xs font-medium text-slate-600">Image URL</label>
                     <input
                         type="text"
-                        value={data.imageUrl as string || ""}
-                        onChange={handleImageUrlChange}
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
                         placeholder={isImageConnected ? "Provided by connection" : "https://example.com/image.jpg"}
                         disabled={isImageConnected}
                         className={`w-full mt-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${isImageConnected
@@ -69,8 +65,8 @@ export const VisionNode = memo(({ id, data, selected }: NodeProps) => {
                     <label className="text-xs font-medium text-slate-600">Analysis Prompt</label>
                     <input
                         type="text"
-                        value={data.prompt as string || "Describe this image"}
-                        onChange={handlePromptChange}
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
                         placeholder={isPromptConnected ? "Provided by connection" : "What should the AI analyze?"}
                         disabled={isPromptConnected}
                         className={`w-full mt-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${isPromptConnected
