@@ -6,6 +6,7 @@ import { VisionNodeExecutor } from "./nodes/VisionNodeExecutor";
 import { CropImageNodeExecutor } from "./nodes/CropImageNodeExecutor";
 import { ExtractFrameNodeExecutor } from "./nodes/ExtractFrameNodeExecutor";
 import { UploadImageNodeExecutor } from "./nodes/UploadImageNodeExecutor";
+import { UploadVideoNodeExecutor } from "./nodes/UploadVideoNodeExecutor";
 
 export const executorRegistry: Record<string, new () => ExecutableNode> = {
     text: TextNodeExecutor,
@@ -13,7 +14,7 @@ export const executorRegistry: Record<string, new () => ExecutableNode> = {
     llm: LLMNodeExecutor,
     vision: VisionNodeExecutor,
     uploadImage: UploadImageNodeExecutor,
-    uploadVideo: TextNodeExecutor, // Video likely needs its own executor too if it extracts data
+    uploadVideo: UploadVideoNodeExecutor,
     cropImage: CropImageNodeExecutor,
     extractFrame: ExtractFrameNodeExecutor,
 };

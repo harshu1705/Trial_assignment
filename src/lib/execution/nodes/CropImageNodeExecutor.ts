@@ -1,22 +1,17 @@
 import { ExecutableNode, ExecutionContext } from '../types';
 
-type CropInput = {
-  nodeId?: string;
-  nodeData?: any;
-  inputData?: Record<string, any>;
-};
-
-export class CropImageNodeExecutor implements ExecutableNode<CropInput, Record<string, any>> {
-  async execute(input: CropInput, context: ExecutionContext): Promise<Record<string, any>> {
-    const nodeData = input.nodeData ?? {};
-    const inputData = input.inputData ?? {};
-    const imageUrl = inputData.imageUrl || nodeData.imageUrl;
+export class CropImageNodeExecutor implements ExecutableNode<Record<string, any>, Record<string, any>> {
+  async execute(input: Record<string, any>, context: ExecutionContext): Promise<Record<string, any>> {
+    // In engine.ts, 'input' is a flat merge of node.data and upstream results
+    const imageUrl = input.imageUrl as string;
 
     if (!imageUrl) {
-      throw new Error('Crop Image Node: No input image provided');
+      throw new Error('Crop Image Node: No input image provided. Please connect an Image node.');
     }
 
-    const { x, y, width, height } = nodeData.crop || {
+    // Default crop values from node data
+    const crop = input.crop as { x: number, y: number, width: number, height: number } | undefined;
+    const { x, y, width, height } = crop || {
       x: 0,
       y: 0,
       width: 100,
@@ -24,14 +19,10 @@ export class CropImageNodeExecutor implements ExecutableNode<CropInput, Record<s
     };
 
     try {
-      // SIMULATION: Direct Mock execution to ensure stability without Trigger.dev/FFmpeg
-      // Real implementation would use: fetch('/api/execute/crop-image', ...)
-
       console.log("Crop input image_url:", imageUrl);
       console.log("Crop params:", x, y, width, height);
 
-      // Return the original image or a placeholder to signify "processed"
-      // Appending a query param is a good trick to make the browser treat it as "new"
+      // SIMULATION: Direct Mock execution
       const separator = imageUrl.includes('?') ? '&' : '?';
       const mockCroppedUrl = `${imageUrl}${separator}cropped=true&t=${Date.now()}`;
 

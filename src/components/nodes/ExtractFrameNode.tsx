@@ -47,7 +47,7 @@ export const ExtractFrameNode: React.FC<{ data: any; id: string }> = ({
       </div>
 
       {/* Handles */}
-      <Handle type="target" position={Position.Left} id="video-input" />
+      <Handle type="target" position={Position.Left} id="video_url" />
       <Handle type="source" position={Position.Right} id="frame-output" />
     </div>
   );
