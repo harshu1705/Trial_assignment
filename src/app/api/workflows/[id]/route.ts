@@ -10,15 +10,12 @@ const UpdateWorkflowSchema = z.object({
   edges: z.array(z.any()).optional(),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, context: any) {
   try {
     const user = await getCurrentUser();
-    
-    const workflow = await prisma.workflow.findUnique({
-      where: { id: params.id },
+    const id = context?.params?.id || (await context?.params)?.id;
+    const workflow = await (prisma as any).workflow.findUnique({
+      where: { id },
       include: {
         runs: {
           select: { id: true, status: true, createdAt: true },
@@ -55,18 +52,13 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, context: any) {
   try {
     const user = await getCurrentUser();
     const body = await request.json();
     const updates = UpdateWorkflowSchema.parse(body);
-    
-    const workflow = await prisma.workflow.findUnique({
-      where: { id: params.id },
-    });
+    const id = context?.params?.id || (await context?.params)?.id;
+    const workflow = await (prisma as any).workflow.findUnique({ where: { id } });
     
     if (!workflow || workflow.userId !== user.id) {
       return NextResponse.json(
@@ -75,8 +67,8 @@ export async function PUT(
       );
     }
     
-    const updated = await prisma.workflow.update({
-      where: { id: params.id },
+    const updated = await (prisma as any).workflow.update({
+      where: { id },
       data: updates,
     });
     
@@ -93,16 +85,11 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, context: any) {
   try {
     const user = await getCurrentUser();
-    
-    const workflow = await prisma.workflow.findUnique({
-      where: { id: params.id },
-    });
+    const id = context?.params?.id || (await context?.params)?.id;
+    const workflow = await (prisma as any).workflow.findUnique({ where: { id } });
     
     if (!workflow || workflow.userId !== user.id) {
       return NextResponse.json(
@@ -111,9 +98,7 @@ export async function DELETE(
       );
     }
     
-    await prisma.workflow.delete({
-      where: { id: params.id },
-    });
+    await (prisma as any).workflow.delete({ where: { id } });
     
     return NextResponse.json({
       success: true,

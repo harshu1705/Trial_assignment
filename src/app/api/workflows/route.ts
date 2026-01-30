@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     
-    const workflows = await prisma.workflow.findMany({
+    const workflows = await (prisma as any).workflow.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, description, nodes, edges } = CreateWorkflowSchema.parse(body);
     
-    const workflow = await prisma.workflow.create({
+    const workflow = await (prisma as any).workflow.create({
       data: {
         userId: user.id,
         name,

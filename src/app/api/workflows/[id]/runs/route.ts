@@ -3,32 +3,34 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-    request: Request,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, context: any) {
     try {
         // Note: We currently ignore the `id` param because the WorkflowRun model
         // does not link to a Workflow model in this assignment context.
-        const { id } = await params;
+        const id = context?.params?.id || (await context?.params)?.id;
 
-        const runs = await prisma.workflowRun.findMany({
+        const runs = await (prisma as any).workflowRun.findMany({
             take: 10,
-            orderBy: {
-                createdAt: 'desc',
-            },
+            orderBy: { createdAt: 'desc' },
             select: {
                 id: true,
                 createdAt: true,
                 status: true,
-                scope: true,
-                payload: true, // Include payload for node details
+                input: true,
+                output: true,
+                triggerId: true,
+                errorMessage: true,
             },
         });
 
-        const formattedRuns = runs.map(run => ({
-            ...run,
-            payload: run.payload ? JSON.parse(run.payload) : null,
+        const formattedRuns = runs.map((run: any) => ({
+            id: run.id,
+            createdAt: run.createdAt,
+            status: run.status,
+            input: run.input ?? null,
+            output: run.output ?? null,
+            triggerId: run.triggerId ?? null,
+            errorMessage: run.errorMessage ?? null,
         }));
 
         return NextResponse.json({ runs: formattedRuns });

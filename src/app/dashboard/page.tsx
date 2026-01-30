@@ -14,26 +14,20 @@ export default async function DashboardPage() {
     const user = await currentUser();
 
     return (
-        <div className="p-6 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-8 shrink-0">
-                <h2 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h2>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8 shrink-0">
-                <div className="p-6 bg-white rounded-xl shadow-sm border border-slate-200">
-                    <h3 className="font-semibold text-slate-700">Welcome back!</h3>
-                    <p className="text-slate-500 mt-2">
-                        Hello, {user?.firstName || "User"}
-                    </p>
-                </div>
-                <div className="p-6 bg-white rounded-xl shadow-sm border border-slate-200">
-                    <h3 className="font-semibold text-slate-700">Status</h3>
-                    <p className="text-emerald-500 mt-2 font-medium">
-                        Active
-                    </p>
+        <div className="h-full flex flex-col">
+            {/* Compact Top Bar */}
+            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-200 bg-white/80 backdrop-blur-sm shrink-0">
+                <h1 className="text-lg font-semibold text-slate-900">Workflow Editor</h1>
+                <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-600">
+                        Hello, <span className="font-medium text-slate-900">{user?.firstName || "User"}</span>
+                    </span>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                 </div>
             </div>
 
-            <div className="flex-1 min-h-[500px] border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white relative flex">
+            {/* Fullscreen Canvas Area */}
+            <div className="flex-1 overflow-hidden bg-slate-50 relative flex">
                 <NodesSidebar />
                 <div className="flex-1 h-full relative">
                     <Canvas />

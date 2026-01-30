@@ -1,13 +1,17 @@
-import { ExecutableNode } from '../types';
+import { ExecutableNode, ExecutionContext } from '../types';
 
-export class CropImageNodeExecutor implements ExecutableNode {
-  async execute(
-    nodeId: string,
-    nodeData: any,
-    inputData: Record<string, any>,
-    context: any
-  ): Promise<any> {
+type CropInput = {
+  nodeId?: string;
+  nodeData?: any;
+  inputData?: Record<string, any>;
+};
+
+export class CropImageNodeExecutor implements ExecutableNode<CropInput, Record<string, any>> {
+  async execute(input: CropInput, context: ExecutionContext): Promise<Record<string, any>> {
+    const nodeData = input.nodeData ?? {};
+    const inputData = input.inputData ?? {};
     const imageUrl = inputData.imageUrl || nodeData.imageUrl;
+
     if (!imageUrl) {
       throw new Error('Crop Image Node: No input image provided');
     }
@@ -20,7 +24,7 @@ export class CropImageNodeExecutor implements ExecutableNode {
     };
 
     try {
-      // Call API to trigger FFmpeg crop task via Trigger.dev
+      // Call internal API to trigger FFmpeg crop task
       const response = await fetch('/api/execute/crop-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -40,17 +44,11 @@ export class CropImageNodeExecutor implements ExecutableNode {
       const result = await response.json();
 
       return {
-        status: 'success',
-        output: {
-          croppedImageUrl: result.croppedUrl,
-          coordinates: { x, y, width, height },
-        },
+        croppedImageUrl: result.croppedUrl,
+        coordinates: { x, y, width, height },
       };
     } catch (error) {
-      return {
-        status: 'failed',
-        error: error instanceof Error ? error.message : 'Crop failed',
-      };
+      throw new Error(error instanceof Error ? error.message : 'Crop failed');
     }
   }
 }

@@ -3,15 +3,12 @@ import { runs } from "@trigger.dev/sdk/v3";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ runId: string }> }
-) {
+export async function GET(request: NextRequest, context: any) {
     try {
         const user = await getCurrentUser();
-        const { runId } = await params;
+        const runId = context?.params?.runId || (await context?.params)?.runId;
 
-        const run = await prisma.workflowRun.findUnique({
+        const run = await (prisma as any).workflowRun.findUnique({
           where: { id: runId },
           include: {
             nodeResults: true,
@@ -36,14 +33,14 @@ export async function GET(
         }
 
         if (run.triggerId) {
-          const triggerRun = await runs.retrieve(run.triggerId);
-          
+          const triggerRun = await runs.retrieve(run.triggerId).catch(() => null);
+
           return NextResponse.json({
-            status: triggerRun.status,
-            output: triggerRun.output,
-            error: triggerRun.error,
-            isCompleted: triggerRun.isCompleted,
-            isFailed: triggerRun.status === "FAILED" || triggerRun.status === "CRASHED",
+            status: triggerRun?.status ?? run.status,
+            output: triggerRun?.output ?? run.output,
+            error: triggerRun?.error ?? run.errorMessage,
+            isCompleted: !!triggerRun?.isCompleted,
+            isFailed: (triggerRun?.status === "FAILED" || triggerRun?.status === "CRASHED") || false,
             nodeResults: run.nodeResults,
             executionLogs: run.executionLogs,
           });

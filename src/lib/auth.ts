@@ -19,19 +19,12 @@ export async function requireAuth() {
  * Get or create user in database from Clerk user
  */
 export async function getOrCreateUser(clerkId: string, email: string) {
-  let user = await prisma.user.findUnique({
-    where: { clerkId },
-  });
-  
+  let user = await (prisma as any).user.findUnique({ where: { clerkId } });
+
   if (!user) {
-    user = await prisma.user.create({
-      data: {
-        clerkId,
-        email,
-      },
-    });
+    user = await (prisma as any).user.create({ data: { clerkId, email } });
   }
-  
+
   return user;
 }
 

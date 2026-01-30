@@ -23,14 +23,14 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const run = await prisma.workflowRun.create({
-          data: {
-            userId: user.id,
-            workflowId: workflowId || undefined,
-            status: 'QUEUED',
-            input: { nodes, edges },
-          },
-        });
+                const run = await (prisma as any).workflowRun.create({
+                    data: {
+                        userId: user.id,
+                        workflowId: workflowId || undefined,
+                        status: 'QUEUED',
+                        input: { nodes, edges },
+                    },
+                });
 
         const triggerRun = await tasks.trigger("workflow-task", {
             nodes,
@@ -39,10 +39,10 @@ export async function POST(req: NextRequest) {
             userId: user.id,
         });
 
-        await prisma.workflowRun.update({
-          where: { id: run.id },
-          data: { triggerId: triggerRun.id },
-        });
+                await (prisma as any).workflowRun.update({
+                    where: { id: run.id },
+                    data: { triggerId: triggerRun.id },
+                });
 
         return NextResponse.json({
             success: true,

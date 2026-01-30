@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         }
         
         const [runs, total] = await Promise.all([
-          prisma.workflowRun.findMany({
+          (prisma as any).workflowRun.findMany({
             where,
             include: {
               nodeResults: {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
             skip,
             take: limit,
           }),
-          prisma.workflowRun.count({ where }),
+          (prisma as any).workflowRun.count({ where }),
         ]);
         
         return NextResponse.json({

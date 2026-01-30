@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export const workflowTask = task({
     id: "workflow-task",
     maxDuration: 600, // 10 minutes
-    run: async (payload: { nodes: Node[]; edges: Edge[] }) => {
+    run: async (payload: { nodes: Node[]; edges: Edge[]; runId?: string; userId?: string }) => {
         console.log("🚀 Starting workflow execution...");
         console.log(`📊 Received ${payload.nodes.length} nodes and ${payload.edges.length} edges.`);
 
@@ -54,18 +54,31 @@ export const workflowTask = task({
                 nodesExecuted: context.logs.filter(l => l.message.includes('Executing')).length
             };
 
-            // Persist Run History (Single Path for Success/Partial/Fail)
+            // Persist Run History by updating the existing run (created by /api/execute)
             try {
-                await prisma.workflowRun.create({
-                    data: {
-                        status: runStatus,
-                        scope: "full",
-                        payload: JSON.stringify(result),
-                    },
-                });
-                console.log("✅ Run saved to DB");
+                if (payload.runId) {
+                    await (prisma as any).workflowRun.update({
+                        where: { id: payload.runId },
+                        data: {
+                            status: runStatus,
+                            output: result,
+                            completedAt: new Date(),
+                        },
+                    });
+                    console.log("✅ Run updated in DB");
+                } else {
+                    // Fallback: create a system run if no runId provided
+                    await (prisma as any).workflowRun.create({
+                        data: {
+                            userId: payload.userId || 'system',
+                            status: runStatus,
+                            output: result,
+                        },
+                    });
+                    console.log("✅ Run created in DB (fallback)");
+                }
             } catch (dbError) {
-                console.error("❌ Failed to save run to DB:", dbError);
+                console.error("❌ Failed to persist run to DB:", dbError);
             }
 
             return result;
@@ -85,13 +98,24 @@ export const workflowTask = task({
             };
 
             try {
-                await prisma.workflowRun.create({
-                    data: {
-                        status: "failed",
-                        scope: "full",
-                        payload: JSON.stringify(failedResult),
-                    },
-                });
+                if (payload.runId) {
+                    await (prisma as any).workflowRun.update({
+                        where: { id: payload.runId },
+                        data: {
+                            status: 'failed',
+                            output: failedResult,
+                            completedAt: new Date(),
+                        },
+                    });
+                } else {
+                    await (prisma as any).workflowRun.create({
+                        data: {
+                            userId: payload.userId || 'system',
+                            status: 'failed',
+                            output: failedResult,
+                        },
+                    });
+                }
             } catch (dbError) { console.error(dbError); }
 
             return failedResult;
