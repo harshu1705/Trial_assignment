@@ -5,11 +5,18 @@ import { Clock, Activity, CheckCircle, XCircle, ChevronRight, ChevronDown, Chevr
 import { cn } from "@/lib/utils";
 
 type NodeResult = {
-    duration: number; // in seconds
-    status: 'success' | 'failed' | 'running';
+    duration?: number; // in milliseconds
+    status: 'success' | 'failed' | 'running' | 'completed' | 'error';
     output?: any;
     error?: string;
-    _meta?: any;
+    _meta?: {
+        label?: string;
+        type?: string;
+        duration?: number;
+        inputs?: any;
+        [key: string]: any;
+    };
+    [key: string]: any;
 };
 
 type Run = {
