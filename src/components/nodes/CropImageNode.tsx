@@ -38,40 +38,44 @@ export const CropImageNode: React.FC<{ data: any; id: string }> = ({
 
       <div className="space-y-2 text-sm">
         <div>
-          <label className="block font-medium text-gray-700">X Position</label>
+          <label className="block font-medium text-gray-700">X Position (%)</label>
           <input
             type="number"
             min="0"
+            max="100"
             value={crop.x}
             onChange={(e) => handleCropChange('x', parseInt(e.target.value) || 0)}
             className="w-full border rounded px-2 py-1 text-xs"
           />
         </div>
         <div>
-          <label className="block font-medium text-gray-700">Y Position</label>
+          <label className="block font-medium text-gray-700">Y Position (%)</label>
           <input
             type="number"
             min="0"
+            max="100"
             value={crop.y}
             onChange={(e) => handleCropChange('y', parseInt(e.target.value) || 0)}
             className="w-full border rounded px-2 py-1 text-xs"
           />
         </div>
         <div>
-          <label className="block font-medium text-gray-700">Width</label>
+          <label className="block font-medium text-gray-700">Width (%)</label>
           <input
             type="number"
             min="1"
+            max="100"
             value={crop.width}
             onChange={(e) => handleCropChange('width', parseInt(e.target.value) || 100)}
             className="w-full border rounded px-2 py-1 text-xs"
           />
         </div>
         <div>
-          <label className="block font-medium text-gray-700">Height</label>
+          <label className="block font-medium text-gray-700">Height (%)</label>
           <input
             type="number"
             min="1"
+            max="100"
             value={crop.height}
             onChange={(e) => handleCropChange('height', parseInt(e.target.value) || 100)}
             className="w-full border rounded px-2 py-1 text-xs"
@@ -80,7 +84,7 @@ export const CropImageNode: React.FC<{ data: any; id: string }> = ({
       </div>
 
       {/* Handles */}
-      <Handle type="target" position={Position.Left} id="image-input" />
+      <Handle type="target" position={Position.Left} id="image-url" />
       <Handle type="source" position={Position.Right} id="cropped-image" />
     </div>
   );

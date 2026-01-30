@@ -20,7 +20,7 @@ export class CropImageNodeExecutor implements ExecutableNode<Record<string, any>
 
     try {
       console.log("Crop input image_url:", imageUrl);
-      console.log("Crop params:", x, y, width, height);
+      console.log("Crop params (percent):", x, y, width, height);
 
       // SIMULATION: Direct Mock execution
       const separator = imageUrl.includes('?') ? '&' : '?';
