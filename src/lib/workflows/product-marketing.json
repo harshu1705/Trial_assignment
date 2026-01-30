@@ -1,0 +1,173 @@
+{
+    "nodes": [
+        {
+            "id": "upload-image-1",
+            "type": "uploadImage",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "data": {
+                "label": "Product Image"
+            }
+        },
+        {
+            "id": "crop-image-1",
+            "type": "cropImage",
+            "position": {
+                "x": 300,
+                "y": 0
+            },
+            "data": {
+                "label": "Crop Product",
+                "crop": {
+                    "x": 10,
+                    "y": 10,
+                    "width": 80,
+                    "height": 80
+                }
+            }
+        },
+        {
+            "id": "text-details-1",
+            "type": "text",
+            "position": {
+                "x": 0,
+                "y": 300
+            },
+            "data": {
+                "label": "Product Details",
+                "value": "Premium leather backpack, water-resistant, 15-inch laptop compartment, ergonomic straps."
+            }
+        },
+        {
+            "id": "llm-description-1",
+            "type": "llm",
+            "position": {
+                "x": 600,
+                "y": 150
+            },
+            "data": {
+                "label": "Generate Description",
+                "user_message": "Describe this product based on the image and details provided. Focus on key features.",
+                "system_prompt": "You are a professional copywriter."
+            }
+        },
+        {
+            "id": "upload-video-1",
+            "type": "uploadVideo",
+            "position": {
+                "x": 0,
+                "y": 600
+            },
+            "data": {
+                "label": "Product Demo Video"
+            }
+        },
+        {
+            "id": "extract-frame-1",
+            "type": "extractFrame",
+            "position": {
+                "x": 300,
+                "y": 600
+            },
+            "data": {
+                "label": "Extract Highlight",
+                "timestamp": "50%"
+            }
+        },
+        {
+            "id": "text-system-1",
+            "type": "text",
+            "position": {
+                "x": 600,
+                "y": 450
+            },
+            "data": {
+                "label": "Marketing System Prompt",
+                "value": "You are a marketing expert. Create a full social media kit including Instagram captions, Twitter threads, and email subject lines."
+            }
+        },
+        {
+            "id": "llm-final-1",
+            "type": "llm",
+            "position": {
+                "x": 1000,
+                "y": 300
+            },
+            "data": {
+                "label": "Final Marketing Kit",
+                "user_message": "Combine the product description, the cropped product shot, and the extracted video frame to generate the marketing kit."
+            }
+        },
+        {
+            "id": "note-1",
+            "type": "text",
+            "position": {
+                "x": 1000,
+                "y": 0
+            },
+            "data": {
+                "value": "NOTE: This workflow demonstrates parallel processing (Branch A & B) converging into a final node."
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "e1-2",
+            "source": "upload-image-1",
+            "sourceHandle": "image-url",
+            "target": "crop-image-1",
+            "targetHandle": "image-url"
+        },
+        {
+            "id": "e2-4",
+            "source": "crop-image-1",
+            "sourceHandle": "cropped-image",
+            "target": "llm-description-1",
+            "targetHandle": "images"
+        },
+        {
+            "id": "e3-4",
+            "source": "text-details-1",
+            "sourceHandle": "user_message",
+            "target": "llm-description-1",
+            "targetHandle": "user_message"
+        },
+        {
+            "id": "e5-6",
+            "source": "upload-video-1",
+            "sourceHandle": "video_url",
+            "target": "extract-frame-1",
+            "targetHandle": "video_url"
+        },
+        {
+            "id": "e4-8-1",
+            "source": "llm-description-1",
+            "sourceHandle": "response",
+            "target": "llm-final-1",
+            "targetHandle": "user_message"
+        },
+        {
+            "id": "e7-8",
+            "source": "text-system-1",
+            "sourceHandle": "user_message",
+            "target": "llm-final-1",
+            "targetHandle": "system"
+        },
+        {
+            "id": "e2-8-img",
+            "source": "crop-image-1",
+            "sourceHandle": "cropped-image",
+            "target": "llm-final-1",
+            "targetHandle": "images"
+        },
+        {
+            "id": "e6-8-img",
+            "source": "extract-frame-1",
+            "sourceHandle": "image_url",
+            "target": "llm-final-1",
+            "targetHandle": "images"
+        }
+    ]
+}
