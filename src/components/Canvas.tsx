@@ -157,17 +157,17 @@ const Flow = () => {
 
                 if (data.output?.nodeStatus) {
                     const nodeStatusMap = data.output.nodeStatus;
-                    const results = data.output.results || {};
+                    // const results = data.output.results || {}; // Stop reading results into node data
 
                     // Update Store
                     const currentNodes = useFlowStore.getState().nodes;
                     const updatedNodes = currentNodes.map((n) => {
-                        const executionResult = results[n.id] || {};
+                        // const executionResult = results[n.id] || {}; // No longer needed
                         return {
                             ...n,
                             data: {
                                 ...n.data,
-                                ...executionResult,
+                                // ...executionResult, // DO NOT POLLUTE NODE DATA
                                 status: nodeStatusMap[n.id] || (currentStatus === "RUNNING" ? 'running' : n.data.status)
                             }
                         };
@@ -178,6 +178,14 @@ const Flow = () => {
 
                 if (currentStatus === "COMPLETED" || currentStatus === "FAILED") {
                     setIsRunning(false);
+
+                    // Reset all nodes to idle state for "clean canvas"
+                    const finalNodes = useFlowStore.getState().nodes.map(n => ({
+                        ...n,
+                        data: { ...n.data, status: 'idle' }
+                    }));
+                    useFlowStore.getState().setNodes(finalNodes);
+
                     if (currentStatus === "FAILED") alert(`Workflow execution failed: ${data.error ? JSON.stringify(data.error) : "Unknown error"}`);
                     return;
                 }
