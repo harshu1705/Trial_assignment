@@ -36,27 +36,58 @@ export async function POST(req: NextRequest) {
             data: {
                 userId: user.id,
                 workflowId: workflowId || undefined,
-                status: 'QUEUED',
+                status: 'RUNNING', // Set to RUNNING immediately
                 input: JSON.stringify({ nodes, edges }),
             },
         });
         console.log('✅ Workflow run created:', run.id);
 
-        // Trigger the workflow task
-        console.log('🚀 Triggering workflow task in Trigger.dev...');
-        const triggerRun = await tasks.trigger("workflow-task", {
-            nodes,
-            edges,
-            runId: run.id,
-            userId: user.id,
-        });
-        console.log('✅ Trigger.dev task triggered:', triggerRun.id);
+        // DIRECT EXECUTION (Bypassing Trigger.dev worker requirement for local dev simplicity)
+        // This ensures it runs immediately without needing 'npx trigger.dev dev'
 
-        // Update run with trigger ID
-        await prisma.workflowRun.update({
-            where: { id: run.id },
-            data: { triggerId: triggerRun.id },
-        });
+        // Asynchronous execution without awaiting (Fire & Forget style) 
+        // OR await it if we want to return results immediately. 
+        // Polling expects a runId, so we can await it here since it takes <10s mostly.
+
+        const { runWorkflow } = await import("@/lib/execution/engine");
+
+        console.log("🚀 Starting Direct Execution...");
+        try {
+            const context = await runWorkflow(nodes, edges);
+
+            // Extract results
+            const results = Object.fromEntries(context.nodeResults);
+
+            const hasFailure = Array.from(context.nodeResults.values()).some((r: any) => r.status === 'failed');
+            const runStatus = hasFailure ? 'failed' : 'success'; // Simplification for MVP
+
+            // Update run with results
+            const outputPayload = {
+                success: !hasFailure,
+                executionId: context.executionId,
+                results: results,
+                logs: context.logs
+            };
+
+            await prisma.workflowRun.update({
+                where: { id: run.id },
+                data: {
+                    status: 'COMPLETED',
+                    output: JSON.stringify(outputPayload) // Serialize to string for DB
+                },
+            });
+            console.log("✅ Direct Execution Finished & DB Updated");
+
+        } catch (execError: any) {
+            console.error("❌ Execution Error:", execError);
+            await prisma.workflowRun.update({
+                where: { id: run.id },
+                data: {
+                    status: 'FAILED',
+                    errorMessage: execError.message
+                }
+            });
+        }
 
         console.log('✅ POST /api/execute - Success!');
         return NextResponse.json({

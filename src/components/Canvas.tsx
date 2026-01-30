@@ -158,10 +158,40 @@ const Flow = () => {
 
                 setRunStatus(currentStatus);
 
-                if (data.output?.nodeStatus) {
-                    const nodeStatusMap = data.output.nodeStatus;
+                if (data.output?.results) {
+                    const resultsMap = data.output.results;
 
                     // Update Store
+                    const currentNodes = useFlowStore.getState().nodes;
+                    const updatedNodes = currentNodes.map((n) => {
+                        const result = resultsMap[n.id];
+
+                        // If no result yet, keep current state (or 'running' if checking)
+                        if (!result) return {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                status: currentStatus === "RUNNING" ? 'running' : n.data.status
+                            }
+                        };
+
+                        return {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                // Map backend 'success' to frontend 'completed'
+                                status: result.status === 'success' ? 'completed' : (result.status === 'failed' ? 'error' : 'running'),
+                                output: result.output, // ✅ This updates the LLM text!
+                                error: result.error,
+                                _meta: result._meta
+                            }
+                        };
+                    });
+
+                    useFlowStore.getState().setNodes(updatedNodes);
+                } else if (data.output?.nodeStatus) {
+                    // Fallback to old property if results missing (backward compat)
+                    const nodeStatusMap = data.output.nodeStatus;
                     const currentNodes = useFlowStore.getState().nodes;
                     const updatedNodes = currentNodes.map((n) => {
                         return {
@@ -172,7 +202,6 @@ const Flow = () => {
                             }
                         };
                     });
-
                     useFlowStore.getState().setNodes(updatedNodes);
                 }
 

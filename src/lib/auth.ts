@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -7,11 +7,11 @@ import { prisma } from '@/lib/prisma';
  */
 export async function requireAuth() {
   const session = await auth();
-  
+
   if (!session || !session.userId) {
     throw new Error('Unauthorized');
   }
-  
+
   return session.userId;
 }
 
@@ -19,10 +19,15 @@ export async function requireAuth() {
  * Get or create user in database from Clerk user
  */
 export async function getOrCreateUser(clerkId: string, email: string) {
-  let user = await (prisma as any).user.findUnique({ where: { clerkId } });
+  let user = await prisma.user.findUnique({ where: { clerkId } });
 
   if (!user) {
-    user = await (prisma as any).user.create({ data: { clerkId, email } });
+    user = await prisma.user.create({
+      data: {
+        clerkId,
+        email
+      }
+    });
   }
 
   return user;
@@ -33,8 +38,21 @@ export async function getOrCreateUser(clerkId: string, email: string) {
  */
 export async function getCurrentUser() {
   const clerkId = await requireAuth();
-  const session = await auth();
-  
-  const user = await getOrCreateUser(clerkId, session?.sessionClaims?.email as string);
-  return user;
+
+  // Try to find user in DB first
+  let user = await prisma.user.findUnique({ where: { clerkId } });
+
+  if (user) {
+    return user;
+  }
+
+  // If not found, fetch details from Clerk to create
+  const clerkUser = await currentUser();
+  const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+
+  if (!email) {
+    throw new Error("Email not found for user");
+  }
+
+  return await getOrCreateUser(clerkId, email);
 }

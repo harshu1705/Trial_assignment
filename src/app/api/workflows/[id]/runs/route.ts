@@ -16,7 +16,8 @@ export async function GET(request: Request, context: any) {
 
         // Note: We currently ignore the `id` param because the WorkflowRun model
         // does not link to a Workflow model in this assignment context.
-        const id = context?.params?.id || (await context?.params)?.id;
+        const params = await context.params;
+        const id = params?.id;
 
         // Fetch runs for the authenticated user
         const runs = await prisma.workflowRun.findMany({

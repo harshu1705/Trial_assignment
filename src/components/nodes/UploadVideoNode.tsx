@@ -13,8 +13,9 @@ export const UploadVideoNode: React.FC<{ data: any; id: string }> = ({
   data,
   id,
 }) => {
+  const safeData = data ?? {};
   const { setNodes } = useReactFlow();
-  const [preview, setPreview] = useState<VideoPreview | null>(data.preview);
+  const [preview, setPreview] = useState<VideoPreview | null>(safeData.preview ?? null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPlayer, setShowPlayer] = useState(false);
@@ -37,7 +38,7 @@ export const UploadVideoNode: React.FC<{ data: any; id: string }> = ({
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m ${secs}s`;
     }
@@ -67,6 +68,27 @@ export const UploadVideoNode: React.FC<{ data: any; id: string }> = ({
         const formData = new FormData();
         const auth = transloadit.generateAuth();
 
+        // SIMULATION MODE: If keys are missing, simulate upload locally
+        if (auth.isMock) {
+          console.log("⚠️ Simulation Mode: Using local object URL");
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Fake delay
+
+          const objectUrl = URL.createObjectURL(file);
+          const previewData: VideoPreview = {
+            url: objectUrl,
+            duration: formatDuration(duration),
+            size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+          };
+
+          setPreview(previewData);
+          setNodes((nodes) =>
+            nodes.map((n) =>
+              n.id === id ? { ...n, data: { ...n.data, videoUrl: objectUrl, preview: previewData } } : n
+            )
+          );
+          return;
+        }
+
         formData.append('files[]', file);
         formData.append(
           'params',
@@ -85,7 +107,8 @@ export const UploadVideoNode: React.FC<{ data: any; id: string }> = ({
         if (!response.ok) throw new Error('Upload failed');
 
         const uploadData = await response.json();
-        const uploadedFile = uploadData.results.uploads[0];
+        const uploadedFile = uploadData?.results?.uploads?.[0];
+        if (!uploadedFile) throw new Error('Invalid upload response');
 
         // Update node with preview
         const previewData: VideoPreview = {
@@ -101,13 +124,13 @@ export const UploadVideoNode: React.FC<{ data: any; id: string }> = ({
           nodes.map((node) =>
             node.id === id
               ? {
-                  ...node,
-                  data: {
-                    ...node.data,
-                    videoUrl: uploadedFile.ssl_url,
-                    preview: previewData,
-                  },
-                }
+                ...node,
+                data: {
+                  ...node.data,
+                  videoUrl: uploadedFile.ssl_url,
+                  preview: previewData,
+                },
+              }
               : node
           )
         );
@@ -156,9 +179,8 @@ export const UploadVideoNode: React.FC<{ data: any; id: string }> = ({
 
       {/* Upload Area */}
       <div
-        className={`border-2 border-dashed rounded p-3 cursor-pointer transition ${
-          uploading ? 'border-gray-300 bg-gray-100' : 'border-purple-300 hover:bg-purple-50'
-        }`}
+        className={`border-2 border-dashed rounded p-3 cursor-pointer transition ${uploading ? 'border-gray-300 bg-gray-100' : 'border-purple-300 hover:bg-purple-50'
+          }`}
         onClick={() => fileInputRef.current?.click()}
       >
         <input
