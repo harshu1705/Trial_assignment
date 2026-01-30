@@ -157,17 +157,14 @@ const Flow = () => {
 
                 if (data.output?.nodeStatus) {
                     const nodeStatusMap = data.output.nodeStatus;
-                    // const results = data.output.results || {}; // Stop reading results into node data
 
                     // Update Store
                     const currentNodes = useFlowStore.getState().nodes;
                     const updatedNodes = currentNodes.map((n) => {
-                        // const executionResult = results[n.id] || {}; // No longer needed
                         return {
                             ...n,
                             data: {
                                 ...n.data,
-                                // ...executionResult, // DO NOT POLLUTE NODE DATA
                                 status: nodeStatusMap[n.id] || (currentStatus === "RUNNING" ? 'running' : n.data.status)
                             }
                         };
