@@ -107,9 +107,9 @@ export const RunHistorySidebar = () => {
     const getDurationColor = (ms?: number, status?: string) => {
         if (status === 'failed') return 'text-red-600 bg-red-50 border-red-100';
         if (ms === undefined || ms === null) return 'text-slate-500 bg-slate-100 border-slate-200';
-        if (ms < 100) return 'text-emerald-600 bg-emerald-50 border-emerald-100'; // Green
-        if (ms < 2000) return 'text-amber-600 bg-amber-50 border-amber-100'; // Yellow
-        return 'text-red-600 bg-red-50 border-red-100'; // Red
+        if (ms < 1000) return 'text-emerald-600 bg-emerald-50 border-emerald-100'; // Green (< 1s)
+        if (ms < 3000) return 'text-amber-600 bg-amber-50 border-amber-100'; // Yellow (1-3s)
+        return 'text-red-600 bg-red-50 border-red-100'; // Red (> 3s)
     };
 
     const getStatusDotColor = (status?: string) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { CaseSensitive, Bug, Sparkles, Eye } from "lucide-react";
+import { CaseSensitive, Bug, Sparkles, Eye, Image, Video, Scissors, Film } from "lucide-react";
 
 export const NodesSidebar = () => {
     const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -14,6 +14,9 @@ export const NodesSidebar = () => {
                 Nodes
             </h2>
 
+            {/* Input Nodes */}
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mt-2">Input</div>
+
             <div
                 className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-emerald-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
                 onDragStart={(event) => onDragStart(event, "text")}
@@ -23,10 +26,41 @@ export const NodesSidebar = () => {
                     <CaseSensitive className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-700">Text Node</span>
+                    <span className="text-sm font-medium text-slate-700">Text</span>
                     <span className="text-[10px] text-slate-400">Input source</span>
                 </div>
             </div>
+
+            <div
+                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-blue-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
+                onDragStart={(event) => onDragStart(event, "uploadImage")}
+                draggable
+            >
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-md">
+                    <Image className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-700">Image Upload</span>
+                    <span className="text-[10px] text-slate-400">File import</span>
+                </div>
+            </div>
+
+            <div
+                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-purple-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
+                onDragStart={(event) => onDragStart(event, "uploadVideo")}
+                draggable
+            >
+                <div className="p-2 bg-purple-50 text-purple-600 rounded-md">
+                    <Video className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-700">Video Upload</span>
+                    <span className="text-[10px] text-slate-400">File import</span>
+                </div>
+            </div>
+
+            {/* Processing Nodes */}
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mt-4">Processing</div>
 
             <div
                 className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-purple-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
@@ -37,27 +71,58 @@ export const NodesSidebar = () => {
                     <Sparkles className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-700">LLM Node</span>
+                    <span className="text-sm font-medium text-slate-700">LLM</span>
                     <span className="text-[10px] text-slate-400">AI generation</span>
                 </div>
             </div>
 
             <div
-                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-blue-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
+                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-cyan-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
                 onDragStart={(event) => onDragStart(event, "vision")}
                 draggable
             >
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-md">
+                <div className="p-2 bg-cyan-50 text-cyan-600 rounded-md">
                     <Eye className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-700">Vision Node</span>
+                    <span className="text-sm font-medium text-slate-700">Vision</span>
                     <span className="text-[10px] text-slate-400">Image analysis</span>
                 </div>
             </div>
 
             <div
-                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-emerald-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
+                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-green-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
+                onDragStart={(event) => onDragStart(event, "cropImage")}
+                draggable
+            >
+                <div className="p-2 bg-green-50 text-green-600 rounded-md">
+                    <Scissors className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-700">Crop Image</span>
+                    <span className="text-[10px] text-slate-400">Edit image</span>
+                </div>
+            </div>
+
+            <div
+                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-orange-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
+                onDragStart={(event) => onDragStart(event, "extractFrame")}
+                draggable
+            >
+                <div className="p-2 bg-orange-50 text-orange-600 rounded-md">
+                    <Film className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-700">Extract Frame</span>
+                    <span className="text-[10px] text-slate-400">Video snapshot</span>
+                </div>
+            </div>
+
+            {/* Utility Nodes */}
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mt-4">Utility</div>
+
+            <div
+                className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg cursor-grab hover:border-slate-500 hover:shadow-md transition-all duration-200 active:cursor-grabbing"
                 onDragStart={(event) => onDragStart(event, "debug")}
                 draggable
             >
@@ -65,7 +130,7 @@ export const NodesSidebar = () => {
                     <Bug className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-700">Debug Node</span>
+                    <span className="text-sm font-medium text-slate-700">Debug</span>
                     <span className="text-[10px] text-slate-400">Inspector</span>
                 </div>
             </div>

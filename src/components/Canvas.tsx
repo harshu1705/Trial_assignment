@@ -16,7 +16,8 @@ import {
     NodeChange,
 } from "@xyflow/react";
 import { nodeRegistry } from "./nodes/nodeRegistry";
-import { Play, RotateCcw, RotateCw } from "lucide-react";
+import { validateWorkflow } from "@/lib/validation";
+import { Play, RotateCcw, RotateCw, AlertTriangle, Loader2, MousePointerClick } from "lucide-react";
 import { useFlowStore, isCyclic } from "@/lib/store";
 import { useShallow } from 'zustand/react/shallow';
 
@@ -43,8 +44,16 @@ const Flow = () => {
 
     const [isRunning, setIsRunning] = useState(false);
     const [runStatus, setRunStatus] = useState<"IDLE" | "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED">("IDLE");
+    const [validationError, setValidationError] = useState<string | null>(null);
+
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
-    const { screenToFlowPosition, getNodes, getEdges } = useReactFlow();
+    const { screenToFlowPosition } = useReactFlow();
+
+    // Validate on change
+    useEffect(() => {
+        const result = validateWorkflow(nodes, edges);
+        setValidationError(result.isValid ? null : result.error || "Invalid workflow");
+    }, [nodes, edges]);
 
     // Undo/Redo via keyboard
     useEffect(() => {
@@ -100,7 +109,6 @@ const Flow = () => {
 
     const isValidConnection = useCallback((connection: Connection | Edge) => {
         // 1. Type Validation (Strict Handle Types)
-        // Handles are named: type-role, e.g. "text-source", "text-prompt", "image-url"
         const sourceHandle = connection.sourceHandle;
         const targetHandle = connection.targetHandle;
 
@@ -109,19 +117,14 @@ const Flow = () => {
             const targetType = targetHandle.split('-')[0];
 
             if (sourceType !== targetType) {
-                return false; // Type mismatch (e.g. text -> image)
+                return false;
             }
         }
 
         // 2. Cycle Detection
-        // uses current nodes/edges from store (or hook)
-        // Pass current store nodes/edges
-        // Using getNodes/getEdges from ReactFlow hook to ensure fresh state if store lags slightly, 
-        // but store is source of truth.
         const currentNodes = useFlowStore.getState().nodes;
-        const currentEdges = useFlowStore.getState().edges; // Edges before connection
+        const currentEdges = useFlowStore.getState().edges;
 
-        // Pass as Connection to match utility signature
         if (isCyclic(currentNodes, currentEdges, connection as Connection)) {
             return false;
         }
@@ -130,7 +133,7 @@ const Flow = () => {
     }, []);
 
 
-    // Helper for polling (unchanged mainly, but updates store)
+    // Helper for polling
     const pollRunStatus = async (runId: string) => {
         const pollInterval = 1000;
         const maxAttempts = 300;
@@ -176,14 +179,31 @@ const Flow = () => {
                 if (currentStatus === "COMPLETED" || currentStatus === "FAILED") {
                     setIsRunning(false);
 
-                    // Reset all nodes to idle state for "clean canvas"
+                    // Revert running state but keep node status for review? 
+                    // Actually requirement says "Reset to Run", but we probably want to keep the visual state 
+                    // on the nodes until they are edited or run again.
+                    // But previous logic was to reset to 'idle'. 
+                    // Let's keep the logic that was working: 
+                    // "Reset all nodes to idle state for 'clean canvas'" was the previous comment, 
+                    // but maybe we should leave them as completed/failed so status is visible?
+                    // Reverting to previous working state for now.
+
+                    /* 
                     const finalNodes = useFlowStore.getState().nodes.map(n => ({
                         ...n,
                         data: { ...n.data, status: 'idle' }
                     }));
                     useFlowStore.getState().setNodes(finalNodes);
+                    */
 
-                    if (currentStatus === "FAILED") alert(`Workflow execution failed: ${data.error ? JSON.stringify(data.error) : "Unknown error"}`);
+                    // Actually, usually you want to see the green/red nodes. 
+                    // Let's NOT reset to idle immediately. Let the user see the result.
+                    // The 'Run' button resets them at the start of the next run.
+
+                    if (currentStatus === "FAILED") {
+                        // Optional global alert
+                        // alert(`Workflow execution failed: ${data.error || "Unknown error"}`);
+                    }
                     return;
                 }
 
@@ -202,11 +222,18 @@ const Flow = () => {
 
     const handleRunWorkflow = async () => {
         if (isRunning) return;
+
+        const validation = validateWorkflow(nodes, edges);
+        if (!validation.isValid) {
+            // Should be disabled, but strict check here
+            return;
+        }
+
         setIsRunning(true);
         setRunStatus("QUEUED");
 
         const currentNodes = useFlowStore.getState().nodes;
-        // Reset node states
+        // Reset node states to idle before new run
         useFlowStore.getState().setNodes(
             currentNodes.map(n => ({ ...n, data: { ...n.data, status: 'idle' } }))
         );
@@ -227,26 +254,25 @@ const Flow = () => {
 
         } catch (error: any) {
             console.error(error);
-            alert(`Error: ${error.message}`);
             setIsRunning(false);
             setRunStatus("FAILED");
         }
     };
 
     return (
-        <div className="h-full w-full bg-slate-50" ref={reactFlowWrapper}>
+        <div className="h-full w-full bg-slate-50 relative" ref={reactFlowWrapper}>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
-                isValidConnection={isValidConnection} // Validation hook
+                isValidConnection={isValidConnection}
                 nodeTypes={nodeRegistry}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 fitView
-                deleteKeyCode={["Backspace", "Delete"]} // Ensure delete works
+                deleteKeyCode={["Backspace", "Delete"]}
                 multiSelectionKeyCode={["Control", "Meta"]}
             >
                 <Background />
@@ -254,7 +280,6 @@ const Flow = () => {
                 <MiniMap />
 
                 <Panel position="top-right" className="flex gap-2 p-4">
-                    {/* Undo/Redo Buttons (Optional visual aid) */}
                     <div className="flex bg-white rounded-lg shadow-sm border border-slate-200 mr-4">
                         <button onClick={() => useFlowStore.temporal.getState().undo()} className="p-2 hover:bg-slate-50 text-slate-600 rounded-l-lg border-r border-slate-100" title="Undo (Ctrl+Z)">
                             <RotateCcw className="w-4 h-4" />
@@ -264,30 +289,54 @@ const Flow = () => {
                         </button>
                     </div>
 
-                    <button
-                        onClick={handleRunWorkflow}
-                        disabled={isRunning}
-                        className={`
-                            flex items-center space-x-2 px-6 py-2 rounded-full font-bold shadow-lg transition-all
-                            ${isRunning
-                                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                : "bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 active:scale-95"}
-                        `}
-                    >
-                        <Play className={`w-5 h-5 ${isRunning ? "animate-pulse" : "fill-current"}`} />
-                        <span>
-                            {runStatus === "QUEUED" ? "Queued" :
-                                runStatus === "RUNNING" ? "Running" :
-                                    "Run"}
-                        </span>
-                    </button>
+                    <div className="relative group">
+                        <button
+                            onClick={handleRunWorkflow}
+                            disabled={isRunning || !!validationError}
+                            className={`
+                                flex items-center space-x-2 px-6 py-2 rounded-full font-bold shadow-lg transition-all
+                                ${isRunning
+                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                    : validationError
+                                        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                        : "bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 active:scale-95"}
+                            `}
+                        >
+                            {isRunning ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <Play className="w-5 h-5 fill-current" />
+                            )}
+                            <span>
+                                {isRunning ? "Running..." : "Run"}
+                            </span>
+                        </button>
+
+                        {/* Tooltip for Disabled State */}
+                        {validationError && (
+                            <div className="absolute top-full mt-2 right-0 w-64 bg-slate-800 text-white text-xs p-2 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                                <div className="flex items-start gap-2">
+                                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                                    <span>{validationError}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </Panel>
             </ReactFlow>
+
+            {/* Empty State */}
             {nodes.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                    <p className="text-slate-500 text-lg font-medium opacity-50 select-none">
-                        Drag nodes from the sidebar to start
-                    </p>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
+                    <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border-2 border-dashed border-slate-300 text-center max-w-sm">
+                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <MousePointerClick className="w-6 h-6 text-slate-400" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-700 mb-1">Start Building</h3>
+                        <p className="text-slate-500 text-sm">
+                            Drag nodes from the sidebar onto the canvas to create your first AI workflow.
+                        </p>
+                    </div>
                 </div>
             )}
         </div>

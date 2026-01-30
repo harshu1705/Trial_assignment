@@ -3,14 +3,129 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String     @id @default(cuid())
+  clerkId       String     @unique
+  email         String     @unique
+  name          String?
+  avatar        String?
+  
+  workflows     Workflow[]
+  runs          WorkflowRun[]
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([clerkId])
+  @@index([email])
+}
+
+model Workflow {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name          String
+  description   String?
+  
+  nodes         Json
+  edges         Json
+  
+  isPublic      Boolean    @default(false)
+  tags          String[]   @default([])
+  
+  runs          WorkflowRun[]
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
 model WorkflowRun {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  status    String
-  scope     String
-  payload   String
+  id            String     @id @default(cuid())
+  workflowId    String?
+  workflow      Workflow?  @relation(fields: [workflowId], references: [id], onDelete: SetNull)
+  
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  triggerId     String?    @unique
+  
+  status        String     @default("QUEUED")
+  
+  input         Json?
+  output        Json?
+  
+  nodeResults   NodeResult[]
+  
+  errorMessage  String?
+  errorStack    String?
+  
+  startedAt     DateTime?
+  completedAt   DateTime?
+  
+  durationMs    Int?
+  
+  executionLogs ExecutionLog[]
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([userId])
+  @@index([workflowId])
+  @@index([triggerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model NodeResult {
+  id            String     @id @default(cuid())
+  runId         String
+  run           WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  
+  nodeId        String
+  nodeType      String
+  
+  status        String     @default("IDLE")
+  
+  input         Json?
+  output        Json?
+  
+  error         String?
+  
+  startedAt     DateTime?
+  completedAt   DateTime?
+  durationMs    Int?
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  @@index([runId])
+  @@index([nodeId])
+  @@index([status])
+  @@unique([runId, nodeId])
+}
+
+model ExecutionLog {
+  id            String     @id @default(cuid())
+  runId         String
+  run           WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  
+  level         String
+  message       String
+  
+  nodeId        String?
+  metadata      Json?
+  
+  timestamp     DateTime   @default(now())
+  
+  @@index([runId])
+  @@index([level])
+  @@index([timestamp])
 }

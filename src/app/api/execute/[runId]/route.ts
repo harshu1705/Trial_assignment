@@ -1,23 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runs } from "@trigger.dev/sdk/v3";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ runId: string }> }
 ) {
     try {
-        // Await params in Next.js 15+
+        const user = await getCurrentUser();
         const { runId } = await params;
 
-        // Retrieve run status from Trigger.dev
-        const run = await runs.retrieve(runId);
+        const run = await prisma.workflowRun.findUnique({
+          where: { id: runId },
+          include: {
+            nodeResults: true,
+            executionLogs: {
+              orderBy: { timestamp: 'asc' },
+            },
+          },
+        });
+
+        if (!run) {
+          return NextResponse.json(
+            { success: false, error: 'Run not found' },
+            { status: 404 }
+          );
+        }
+
+        if (run.userId !== user.id) {
+          return NextResponse.json(
+            { success: false, error: 'Unauthorized' },
+            { status: 403 }
+          );
+        }
+
+        if (run.triggerId) {
+          const triggerRun = await runs.retrieve(run.triggerId);
+          
+          return NextResponse.json({
+            status: triggerRun.status,
+            output: triggerRun.output,
+            error: triggerRun.error,
+            isCompleted: triggerRun.isCompleted,
+            isFailed: triggerRun.status === "FAILED" || triggerRun.status === "CRASHED",
+            nodeResults: run.nodeResults,
+            executionLogs: run.executionLogs,
+          });
+        }
 
         return NextResponse.json({
-            status: run.status,
-            output: run.output,
-            error: run.error,
-            isCompleted: run.isCompleted,
-            isFailed: run.status === "FAILED" || run.status === "CRASHED",
+          status: run.status,
+          output: run.output,
+          error: run.errorMessage,
+          nodeResults: run.nodeResults,
+          executionLogs: run.executionLogs,
         });
 
     } catch (error: any) {

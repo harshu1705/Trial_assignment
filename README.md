@@ -1,102 +1,285 @@
 # Galaxy.ai - AI Workflow Editor
 
-A robust, deterministic AI workflow builder built with **Next.js 15**, **React Flow**, and **Trigger.dev v3**. This project demonstrates a production-grade architecture for executing complex, node-based LLM workflows.
+A production-ready AI workflow builder built with **Next.js 16**, **React Flow**, **Trigger.dev**, and **PostgreSQL**. 
 
 ## 🚀 Key Features
 
--   **Canvas-Based Editing**: Drag-and-drop interface powered by React Flow + @xyflow/react.
--   **Deterministic Execution Engine**: Custom DAG (Directed Acyclic Graph) executor using Kahn’s algorithm.
--   **Serverless Background Jobs**: Workflows run as background tasks via Trigger.dev, ensuring reliability and no timeouts.
--   **Multi-Provider AI**:
-    -   **Gemini (Preferred)**: Uses Google's `gemini-1.5-flash` via strict REST usage (fetch).
-    -   **Groq (Backup)**: Fallback to fast Llama 3 models if Gemini is unavailable.
-    -   **Mock Fallback**: Automatic mock mode for demoing without API keys.
--   **Real-time Status**: Poll-based status updates for running nodes (Queued -> Running -> Completed/Failed).
+-   **Canvas-Based Editing**: Drag-and-drop interface powered by React Flow
+-   **8 Node Types**: Text, LLM, Vision, Upload Image, Upload Video, Crop Image, Extract Frame, Debug
+-   **File Uploads**: Transloadit integration for image/video uploads (max 50MB images, 500MB videos)
+-   **Image Processing**: FFmpeg crop with coordinate inputs
+-   **Video Processing**: FFmpeg frame extraction with timestamps
+-   **Deterministic Execution**: Custom DAG executor using topological sort
+-   **Serverless Jobs**: Background execution via Trigger.dev with no timeouts
+-   **User Authentication**: Clerk auth with complete user data isolation
+-   **Workflow Persistence**: Save/load/export workflows from PostgreSQL
+-   **Execution History**: Track all runs with node-level details
+-   **Real-time Status**: Beautiful animations - dot grid, pulsating glow, animated edges
+-   **Multi-Provider AI**: Google Gemini + Groq with automatic fallbacks
 
 ## 🛠️ Tech Stack
 
--   **Frontend**: Next.js 15 (App Router), TailwindCSS, React Flow.
--   **Backend**: Next.js API Routes, Trigger.dev SDK.
--   **Infrastructure**: Trigger.dev (Worker Platform).
--   **AI Integration**: Google Gemini API, Groq Cloud API.
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS 4, React Flow v12
+- **Backend**: Next.js API Routes, Trigger.dev SDK v4, Prisma ORM
+- **Database**: PostgreSQL 13+
+- **Authentication**: Clerk
+- **File Processing**: Transloadit (uploads), FFmpeg (video/image processing)
+- **AI**: Google Gemini API, Groq API
+- **State**: Zustand + Zundo (undo/redo)
 
-## 🏃‍♂️ Getting Started
+## 📋 Prerequisites
 
-### 1. Installation
+- Node.js 18+ (v20 recommended)
+- PostgreSQL 13+
+- npm or pnpm
+- Clerk account (free tier OK)
+- Trigger.dev account (free tier OK)
+
+## 🏃‍♂️ Quick Start
+
+### 1. Clone & Install
 
 ```bash
+git clone <your-repo>
+cd assignment-fullstack
 npm install
 ```
 
-### 2. Environment Setup
+### 2. Database Setup
 
-Create a `.env.local` file:
+```bash
+# Create PostgreSQL database
+createdb galaxy_ai
+
+# Run migrations
+npx prisma migrate dev --name init
+npx prisma generate
+
+# (Optional) View database
+npx prisma studio
+```
+
+### 3. Environment Variables
+
+Create `.env.local`:
 
 ```env
-# Clerk Auth
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/galaxy_ai"
+
+# Authentication (from Clerk)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
 
-# Trigger.dev
-TRIGGER_SECRET_KEY=tr_dev_...
-TRIGGER_PROJECT_ID=proj_...
+# Background Jobs (from Trigger.dev)
+TRIGGER_API_KEY=tr_dev_...
+TRIGGER_API_URL=https://api.trigger.dev
 
-# AI Keys (At least one required for real AI)
-GEMINI_API_KEY=AIza...
+# AI (from Google Cloud & Groq)
+GOOGLE_GENERATIVE_AI_API_KEY=AIza...
 GROQ_API_KEY=gsk_...
+
+# File Uploads (from Transloadit)
+TRANSLOADIT_AUTH_KEY=your_key
+TRANSLOADIT_SECRET=your_secret
 ```
 
-### 3. Run Development Server
+### 4. Run Development
 
-You need TWO terminals running:
-
-**Terminal 1 (Next.js App):**
+**Terminal 1 - Next.js App:**
 ```bash
 npm run dev
 ```
 
-**Terminal 2 (Trigger.dev Worker):**
+**Terminal 2 - Trigger.dev Worker:**
 ```bash
 npx trigger.dev dev
 ```
 
+Visit http://localhost:3000
+
+## 📖 API Reference
+
+### Authentication
+All endpoints require Clerk authentication. User data automatically isolated by userId.
+
+### Workflows
+```bash
+GET    /api/workflows              # List user's workflows
+POST   /api/workflows              # Create new workflow
+GET    /api/workflows/[id]         # Get workflow details
+PUT    /api/workflows/[id]         # Update workflow
+DELETE /api/workflows/[id]         # Delete workflow
+```
+
+### Execution
+```bash
+POST   /api/execute                # Start workflow execution
+GET    /api/execute/[runId]        # Get execution status & results
+GET    /api/runs                   # List execution history
+```
+
+## 🎨 Node Types
+
+### Input Nodes
+| Node | Purpose | Output |
+|------|---------|--------|
+| **Text** | Enter text input | text |
+| **Upload Image** | Upload JPG/PNG images | image-url |
+| **Upload Video** | Upload MP4/WebM videos | video-url |
+
+### Processing Nodes
+| Node | Purpose | Input | Output |
+|------|---------|-------|--------|
+| **LLM** | Generate text (Gemini/Groq) | text/image | text |
+| **Vision** | Analyze images | image | analysis |
+| **Crop Image** | Crop by coordinates | image | cropped-image |
+| **Extract Frame** | Extract frame at timestamp | video | frame |
+
+### Utility
+| Node | Purpose |
+|------|---------|
+| **Debug** | Inspect data at any point |
+
+## 🔐 Security & Data
+
+- ✅ All routes protected with Clerk authentication
+- ✅ User data isolated at database level (userId foreign keys)
+- ✅ Ownership verification on all user resources
+- ✅ No cross-user data leakage
+- ✅ Secure API routes with Zod validation
+
+## 📊 Database Schema
+
+### User
+- id, clerkId (unique), email (unique), name, avatar
+- Relations: workflows[], runs[]
+
+### Workflow
+- id, userId, name, description, nodes (JSON), edges (JSON)
+- Relations: runs[], user
+
+### WorkflowRun
+- id, userId, workflowId, status, input/output (JSON), errorMessage
+- Relations: nodeResults[], executionLogs[], user, workflow
+
+### NodeResult
+- id, runId, nodeId, nodeType, status, input/output (JSON), error
+- Tracks individual node execution details
+
+### ExecutionLog
+- id, runId, level, message, timestamp
+- Audit trail of execution events
+
+## 🚀 Deployment
+
+### Vercel
+
+```bash
+# Set environment variables in Vercel dashboard
+# Then push to GitHub
+
+git add .
+git commit -m "Production ready"
+git push origin main
+```
+
+Vercel auto-deploys on push.
+
+### PostgreSQL Connection
+
+For production, use:
+- Vercel Postgres (easy, integrated)
+- AWS RDS (reliable, scalable)
+- Railway (cheap, easy)
+- PlanetScale (MySQL alternative)
+
+Update `DATABASE_URL` in Vercel environment variables.
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Check types
+npm run type-check
+
+# Lint code
+npm run lint
+```
+
+## 📚 Project Structure
+
+```
+src/
+├─ app/
+│  ├─ api/
+│  │  ├─ execute/              # Workflow execution
+│  │  ├─ runs/                 # Execution history
+│  │  └─ workflows/            # Workflow CRUD
+│  ├─ dashboard/               # Main app
+│  └─ (auth)/                  # Auth pages (Clerk)
+├─ components/
+│  ├─ Canvas.tsx               # Main editor
+│  ├─ NodesSidebar.tsx         # Node palette
+│  ├─ RunHistorySidebar.tsx    # Run history
+│  └─ nodes/                   # 8 node types
+├─ lib/
+│  ├─ auth.ts                  # Auth utilities
+│  ├─ store.ts                 # Zustand state
+│  ├─ execution/
+│  │  ├─ engine.ts             # DAG executor
+│  │  └─ nodes/                # Node executors
+│  └─ prisma.ts                # DB client
+├─ trigger/                     # Trigger.dev tasks
+└─ middleware.ts                # Route protection
+
+prisma/
+├─ schema.prisma               # Database schema
+└─ migrations/                 # Migration history
+```
+
+## 🎓 Architecture Highlights
+
+### Execution Engine
+- **Kahn's Algorithm**: Topological sort for deterministic execution order
+- **Cycle Detection**: Prevents infinite loops
+- **Data Flow**: Node results accessible to downstream nodes
+- **Error Handling**: Graceful failure with detailed error messages
+
+### State Management
+- **Zustand**: Simple, lightweight state store
+- **Zundo**: Undo/Redo support
+- **Shallow selectors**: Prevent unnecessary re-renders
+
+### API Design
+- **RESTful**: Standard HTTP verbs (GET, POST, PUT, DELETE)
+- **Authenticated**: All routes require Clerk auth
+- **Scoped**: Queries automatically filtered by userId
+- **Validated**: Zod schemas validate all inputs
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Create feature branch: `git checkout -b feature/my-feature`
+3. Commit: `git commit -m "Add feature"`
+4. Push: `git push origin feature/my-feature`
+5. Open PR
+
+## 📝 License
+
+MIT
+
+## 🙋 Support
+
+For issues or questions:
+1. Check existing issues/PRs
+2. Create new issue with details
+3. Include error logs and reproduction steps
+
 ---
 
-## 🧠 Architecture Deep Dive (Interview Prep)
+**Built with ❤️ for the Fullstack Engineer Assignment**
 
-### Q: How does the Execution Engine work?
-**A:** The engine (`src/lib/execution/engine.ts`) treats the specific React Flow graph as a standard directed graph.
-1.  It validates the graph and detects cycles.
-2.  It uses **Kahn’s Algorithm** (Topological Sort) to determine the strictly correct execution order.
-3.  It iterates through this order, executing nodes sequentially (or in parallel batches in V2).
-4.  Data flows via the `context.nodeResults` map, where downstream nodes look up outputs from their upstream dependencies.
-
-### Q: Why Trigger.dev instead of simple API routes?
-**A:** LLM workflows are long-running and unpredictable. Vercel/Next.js serverless functions have strict timeout limits (e.g., 10s-60s). Trigger.dev allows us to run **background jobs** with no timeouts, automatic retries, and persistent logs. It separates the heavy "compute" from the user-facing "interface".
-
-### Q: How do you handle "Unexpected token <" JSON errors?
-**A:** This usually happens when an API crashes and returns a Next.js HTML error page. I improved robustness by:
-1.  Wrapping the API handler (`/api/execute`) in a global try/catch to **always** return JSON, even on 500 crashes.
-2.  Making the frontend fetch logic defensive: it attempts to parse JSON, and if it fails (HTML response), it catches the error and displays a user-friendly message instead of crashing the UI.
-
-### Q: How did you implement LLM Fallbacks?
-**A:** In `engine.ts`, the `executeLLMNode` function uses a priority chain:
-1.  **Gemini**: Checked first. Uses `fetch` to Google's REST API to keep dependencies low.
-2.  **Groq**: Checked second. Fast Llama 3 inference.
-3.  **Mock**: Checked last. If no keys are present, returns a safe mock string to ensure the demo always "works" for reviewers.
-
-### Q: Why isn't `[object Object]` showing in the UI anymore?
-**A:** Previous implementations nested the response as `{ llmResponse: { text: "..." } }`. React tries to render objects as text, which results in `[object Object]`.
-**Fix**: I flattened the engine output to `{ output: "Actual String Here" }` and added strict type checks in the UI component (`typeof data.output === 'string'`) to guarantee only valid text is rendered.
-
-## ✅ Project Status
-- [x] Canvas & Node Drag-and-Drop
-- [x] Cycle Detection & Validation
-- [x] "Run" Button & API Integration
-- [x] Background Execution Engine (Trigger.dev)
-- [x] Real LLM Integration (Gemini + Groq)
-- [x] Robust Error Handling & Fallbacks
-- [x] Debug Node Inspector
-
----
-*Built for the Fullstack Engineer Assignment.*
+Latest Update: January 30, 2026

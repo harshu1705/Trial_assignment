@@ -1,30 +1,48 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
 
-export const dynamic = 'force-dynamic'; // Ensure no caching
+export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
-        const runs = await prisma.workflowRun.findMany({
-            take: 10,
-            orderBy: {
-                createdAt: 'desc',
+        const user = await getCurrentUser();
+        const searchParams = request.nextUrl.searchParams;
+        const workflowId = searchParams.get('workflowId');
+        const limit = parseInt(searchParams.get('limit') || '20');
+        const skip = parseInt(searchParams.get('skip') || '0');
+        
+        const where: any = { userId: user.id };
+        if (workflowId) {
+          where.workflowId = workflowId;
+        }
+        
+        const [runs, total] = await Promise.all([
+          prisma.workflowRun.findMany({
+            where,
+            include: {
+              nodeResults: {
+                select: {
+                  id: true,
+                  nodeId: true,
+                  nodeType: true,
+                  status: true,
+                },
+              },
             },
-            select: {
-                id: true,
-                createdAt: true,
-                status: true,
-                scope: true,
-                payload: true,
-            }
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: limit,
+          }),
+          prisma.workflowRun.count({ where }),
+        ]);
+        
+        return NextResponse.json({
+          success: true,
+          runs,
+          total,
+          hasMore: skip + limit < total,
         });
-
-        const formattedRuns = runs.map(run => ({
-            ...run,
-            payload: JSON.parse(run.payload)
-        }));
-
-        return NextResponse.json({ runs: formattedRuns });
     } catch (error: any) {
         console.error("Failed to fetch runs:", error);
         return NextResponse.json(
