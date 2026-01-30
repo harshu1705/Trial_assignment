@@ -106,19 +106,9 @@ async function executeGeminiNode(prompt: string, apiKey: string) {
  * Uses native fetch to strictly avoid dependency issues.
  */
 export async function executeLLMNode({ prompt }: { prompt: string }) {
-    // 1. Try Gemini (User Preference)
-    if (process.env.GEMINI_API_KEY) {
-        try {
-            return await executeGeminiNode(prompt, process.env.GEMINI_API_KEY);
-        } catch (error: any) {
-            console.error("⚠️ Gemini failed, falling back to other providers if available:", error.message);
-            // Fallthrough to Groq or Mock
-        }
-    }
-
-    // 2. Try Groq
+    // 1. Try Groq First (Faster and more reliable)
     if (process.env.GROQ_API_KEY) {
-        console.log(`🚀 Sending prompt to Groq (Llama 3.1) via fetch: "${prompt.substring(0, 50)}..."`);
+        console.log(`🚀 Sending prompt to Groq (Llama 3.3 70B) via fetch: "${prompt.substring(0, 50)}..."`);
         try {
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
@@ -127,8 +117,10 @@ export async function executeLLMNode({ prompt }: { prompt: string }) {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "llama-3.1-8b-instant", // Updated from decommissioned model
-                    messages: [{ role: "user", content: prompt }]
+                    model: "llama-3.3-70b-versatile", // Latest and best Groq model
+                    messages: [{ role: "user", content: prompt }],
+                    temperature: 0.7,
+                    max_tokens: 2048,
                 })
             });
 
@@ -144,20 +136,30 @@ export async function executeLLMNode({ prompt }: { prompt: string }) {
             return text;
 
         } catch (error: any) {
-            console.error("❌ Groq API execution error:", error);
-            // Fallthrough to Mock if logic permits, or rethrow
-            if (process.env.GEMINI_API_KEY) throw error; // If Gemini also failed, just fail.
+            console.error("⚠️ Groq failed, falling back to Gemini if available:", error.message);
+            // Fallthrough to Gemini
+        }
+    }
+
+    // 2. Try Gemini (Fallback)
+    const geminiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+        try {
+            return await executeGeminiNode(prompt, geminiKey);
+        } catch (error: any) {
+            console.error("⚠️ Gemini also failed:", error.message);
+            // Fallthrough to mock
         }
     }
 
     // 3. Fallback: Mock (if allowed or no keys)
     // Only use mock if NO keys are present OR if we decide to be resilient
-    if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
+    if (!process.env.GROQ_API_KEY && !geminiKey) {
         console.warn("⚠️ No API key found, using mock response");
         return "This is a mock AI response for demonstration purposes. (No API keys configured)";
     }
 
-    throw new Error("Detailed LLM execution failed. Check server logs for provider errors.");
+    throw new Error("All LLM providers failed. Check server logs for details.");
 }
 
 /**

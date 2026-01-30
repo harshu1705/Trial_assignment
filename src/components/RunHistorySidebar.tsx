@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock, Activity, CheckCircle, XCircle, ChevronRight, ChevronDown, AlertCircle, Maximize2, Minimize2 } from "lucide-react";
+import { Clock, Activity, CheckCircle, XCircle, ChevronRight, ChevronDown, ChevronLeft, AlertCircle, Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type NodeResult = {
@@ -59,6 +59,7 @@ const ExpandableOutput = ({ content }: { content: string }) => {
 export const RunHistorySidebar = () => {
     const [runs, setRuns] = useState<Run[]>([]);
     const [expandedRunId, setExpandedRunId] = useState<string | null>(null);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const fetchRuns = async () => {
         try {
@@ -152,165 +153,192 @@ export const RunHistorySidebar = () => {
     };
 
     return (
-        <div className="w-80 border-l border-slate-200 bg-white flex flex-col h-full flex-shrink-0">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center space-x-2 text-slate-700">
-                    <Clock className="w-4 h-4" />
-                    <span className="font-semibold text-sm">Run History</span>
-                </div>
-                <button
-                    onClick={fetchRuns}
-                    className="p-1 hover:bg-slate-200 rounded-full transition-colors"
-                    title="Refresh"
-                >
-                    <Activity className="w-3 h-3 text-slate-500" />
-                </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {runs.length === 0 && (
-                    <div className="text-center text-slate-400 text-xs py-8">
-                        No runs recorded yet.
-                    </div>
+        <div className={cn(
+            "border-l border-slate-200 bg-white flex flex-col h-full flex-shrink-0 relative transition-all duration-300 ease-in-out overflow-hidden",
+            isCollapsed ? "w-0 border-0" : "w-80"
+        )}>
+            {/* Collapse/Expand Button - Fixed positioning */}
+            <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className={cn(
+                    "fixed top-1/2 -translate-y-1/2 z-50 bg-white border border-slate-200 shadow-lg hover:bg-slate-50 transition-all duration-200 group",
+                    isCollapsed
+                        ? "right-0 rounded-l-lg p-2 pr-3"
+                        : "right-0 translate-x-[-320px] rounded-l-lg p-2"
                 )}
+                title={isCollapsed ? "Show run history" : "Hide run history"}
+            >
+                {isCollapsed ? (
+                    <ChevronLeft className="w-4 h-4 text-slate-600 group-hover:text-violet-600 transition-colors" />
+                ) : (
+                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-violet-600 transition-colors" />
+                )}
+            </button>
 
-                {runs.map((run) => (
-                    <div
-                        key={run.id}
-                        className={cn(
-                            "border rounded-lg transition-all duration-200 bg-white",
-                            expandedRunId === run.id ? 'border-indigo-200 shadow-sm ring-1 ring-indigo-50' : 'border-slate-100 hover:border-slate-300'
-                        )}
+            {/* Sidebar Content */}
+            <div className={cn(
+                "flex flex-col h-full transition-opacity duration-300",
+                isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
+            )}>
+                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center space-x-2 text-slate-700">
+                        <Clock className="w-4 h-4" />
+                        <span className="font-semibold text-sm">Run History</span>
+                    </div>
+                    <button
+                        onClick={fetchRuns}
+                        className="p-1 hover:bg-slate-200 rounded-full transition-colors"
+                        title="Refresh"
                     >
-                        {/* Run Header */}
-                        <div
-                            className="p-3 cursor-pointer select-none"
-                            onClick={() => toggleRun(run.id)}
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <span className={cn(
-                                    "text-[10px] px-2 py-0.5 rounded-full font-semibold border uppercase tracking-wide",
-                                    getStatusBadgeStyles(run.status)
-                                )}>
-                                    {run.status}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-mono">
-                                    {formatTimestamp(run.createdAt)}
-                                </span>
-                            </div>
+                        <Activity className="w-3 h-3 text-slate-500" />
+                    </button>
+                </div>
 
-                            <div className="flex items-center justify-between">
-                                <span className={cn(
-                                    "text-[10px] px-1.5 py-0.5 rounded border font-medium",
-                                    getScopeStyles(run.scope)
-                                )}>
-                                    {run.scope}
-                                </span>
-                                {expandedRunId === run.id ? (
-                                    <ChevronDown className="w-3 h-3 text-slate-400" />
-                                ) : (
-                                    <ChevronRight className="w-3 h-3 text-slate-400" />
-                                )}
-                            </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {runs.length === 0 && (
+                        <div className="text-center text-slate-400 text-xs py-8">
+                            No runs recorded yet.
                         </div>
+                    )}
 
-                        {/* Run Details (Expanded) */}
-                        {expandedRunId === run.id && (
-                            <div className="border-t border-slate-100 bg-slate-50/50 p-4 animate-in slide-in-from-top-1 duration-200">
-                                <div className="space-y-0 relative">
-                                    {/* Vertical Timeline Line */}
-                                    <div className="absolute left-[7px] top-2 bottom-6 w-0.5 bg-slate-200 z-0"></div>
+                    {runs.map((run) => (
+                        <div
+                            key={run.id}
+                            className={cn(
+                                "border rounded-lg transition-all duration-200 bg-white",
+                                expandedRunId === run.id ? 'border-indigo-200 shadow-sm ring-1 ring-indigo-50' : 'border-slate-100 hover:border-slate-300'
+                            )}
+                        >
+                            {/* Run Header */}
+                            <div
+                                className="p-3 cursor-pointer select-none"
+                                onClick={() => toggleRun(run.id)}
+                            >
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className={cn(
+                                        "text-[10px] px-2 py-0.5 rounded-full font-semibold border uppercase tracking-wide",
+                                        getStatusBadgeStyles(run.status)
+                                    )}>
+                                        {run.status}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-mono">
+                                        {formatTimestamp(run.createdAt)}
+                                    </span>
+                                </div>
 
-                                    {/* Iterate over nodes */}
-                                    {run.payload?.results && Object.keys(run.payload.results).length > 0 ? (
-                                        Object.entries(run.payload.results).map(([nodeId, result], index) => (
-                                            <div key={nodeId} className="relative z-10 pb-6 last:pb-0 group">
-                                                <div className="flex items-start pl-0">
-                                                    {/* Timeline Dot */}
-                                                    <div className="relative z-10 mr-3 mt-1.5">
-                                                        <div className={cn(
-                                                            "w-4 h-4 rounded-full border-2 border-white ring-1 ring-slate-100 shadow-sm flex items-center justify-center",
-                                                            getStatusDotColor(result.status)
-                                                        )}>
-                                                            {result.status === 'failed' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Node Content Card */}
-                                                    <div className={cn(
-                                                        "flex-1 min-w-0 bg-white border rounded-lg p-3 shadow-sm transition-all duration-200",
-                                                        result.status === 'failed' ? "border-red-200 ring-1 ring-red-50" :
-                                                            result.status === 'running' ? "border-blue-200 ring-1 ring-blue-50" :
-                                                                "border-slate-200 hover:border-indigo-200 hover:shadow-md"
-                                                    )}>
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <div className="flex flex-col truncate pr-2">
-                                                                {/* Node Name */}
-                                                                <span className={cn(
-                                                                    "font-semibold text-sm truncate",
-                                                                    result.status === 'failed' ? "text-red-700" : "text-slate-800"
-                                                                )}>
-                                                                    {/* @ts-ignore - dynamic data */}
-                                                                    {result._meta?.label || (result._meta?.type ? result._meta.type.replace(/([A-Z])/g, ' $1').trim() : 'Node')}
-                                                                </span>
-                                                                {/* Node ID */}
-                                                                <span className="text-[10px] text-slate-400 font-mono tracking-tight">
-                                                                    ID: {nodeId.substring(0, 8)}...
-                                                                </span>
-                                                            </div>
-                                                            {/* Duration Badge - Neutral unless failed, purely informational */}
-                                                            {/* @ts-ignore - dynamic data */}
-                                                            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border bg-slate-50 text-slate-500 border-slate-100">
-                                                                {/* @ts-ignore - dynamic data */}
-                                                                {formatDuration(result._meta?.duration)}
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Input Preview */}
-                                                        {/* @ts-ignore - dynamic data */}
-                                                        {result._meta?.inputs && Object.keys(result._meta.inputs).length > 0 && (
-                                                            <div className="mt-3">
-                                                                <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-1 block">Input</span>
-                                                                <div className="font-mono text-[10px] bg-slate-50 rounded border border-slate-100 p-2 text-slate-600">
-                                                                    {/* @ts-ignore - dynamic data */}
-                                                                    <ExpandableOutput content={JSON.stringify(result._meta.inputs, null, 2)} />
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Output Preview */}
-                                                        {result.output && (
-                                                            <div className="mt-3">
-                                                                <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-1 block">Output</span>
-                                                                <div className="font-mono text-[10px] bg-slate-50 rounded border border-slate-100 p-2 text-slate-600">
-                                                                    <ExpandableOutput content={typeof result.output === 'string' ? result.output : JSON.stringify(result.output, null, 2)} />
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Error Message */}
-                                                        {result.error && (
-                                                            <div className="mt-3">
-                                                                <div className="text-[11px] text-red-600 bg-red-50 p-2 rounded border border-red-100 font-medium break-words flex items-start gap-1.5">
-                                                                    <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                                                                    <span>{result.error}</span>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
+                                <div className="flex items-center justify-between">
+                                    <span className={cn(
+                                        "text-[10px] px-1.5 py-0.5 rounded border font-medium",
+                                        getScopeStyles(run.scope)
+                                    )}>
+                                        {run.scope}
+                                    </span>
+                                    {expandedRunId === run.id ? (
+                                        <ChevronDown className="w-3 h-3 text-slate-400" />
                                     ) : (
-                                        <div className="text-center py-4 text-xs text-slate-400 italic">
-                                            No execution details available
-                                        </div>
+                                        <ChevronRight className="w-3 h-3 text-slate-400" />
                                     )}
                                 </div>
                             </div>
-                        )}
-                    </div>
-                ))}
+
+                            {/* Run Details (Expanded) */}
+                            {expandedRunId === run.id && (
+                                <div className="border-t border-slate-100 bg-slate-50/50 p-4 animate-in slide-in-from-top-1 duration-200">
+                                    <div className="space-y-0 relative">
+                                        {/* Vertical Timeline Line */}
+                                        <div className="absolute left-[7px] top-2 bottom-6 w-0.5 bg-slate-200 z-0"></div>
+
+                                        {/* Iterate over nodes */}
+                                        {run.payload?.results && Object.keys(run.payload.results).length > 0 ? (
+                                            Object.entries(run.payload.results).map(([nodeId, result], index) => (
+                                                <div key={nodeId} className="relative z-10 pb-6 last:pb-0 group">
+                                                    <div className="flex items-start pl-0">
+                                                        {/* Timeline Dot */}
+                                                        <div className="relative z-10 mr-3 mt-1.5">
+                                                            <div className={cn(
+                                                                "w-4 h-4 rounded-full border-2 border-white ring-1 ring-slate-100 shadow-sm flex items-center justify-center",
+                                                                getStatusDotColor(result.status)
+                                                            )}>
+                                                                {result.status === 'failed' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Node Content Card */}
+                                                        <div className={cn(
+                                                            "flex-1 min-w-0 bg-white border rounded-lg p-3 shadow-sm transition-all duration-200",
+                                                            result.status === 'failed' ? "border-red-200 ring-1 ring-red-50" :
+                                                                result.status === 'running' ? "border-blue-200 ring-1 ring-blue-50" :
+                                                                    "border-slate-200 hover:border-indigo-200 hover:shadow-md"
+                                                        )}>
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <div className="flex flex-col truncate pr-2">
+                                                                    {/* Node Name */}
+                                                                    <span className={cn(
+                                                                        "font-semibold text-sm truncate",
+                                                                        result.status === 'failed' ? "text-red-700" : "text-slate-800"
+                                                                    )}>
+                                                                        {/* @ts-ignore - dynamic data */}
+                                                                        {result._meta?.label || (result._meta?.type ? result._meta.type.replace(/([A-Z])/g, ' $1').trim() : 'Node')}
+                                                                    </span>
+                                                                    {/* Node ID */}
+                                                                    <span className="text-[10px] text-slate-400 font-mono tracking-tight">
+                                                                        ID: {nodeId.substring(0, 8)}...
+                                                                    </span>
+                                                                </div>
+                                                                {/* Duration Badge - Neutral unless failed, purely informational */}
+                                                                {/* @ts-ignore - dynamic data */}
+                                                                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border bg-slate-50 text-slate-500 border-slate-100">
+                                                                    {/* @ts-ignore - dynamic data */}
+                                                                    {formatDuration(result._meta?.duration)}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Input Preview */}
+                                                            {/* @ts-ignore - dynamic data */}
+                                                            {result._meta?.inputs && Object.keys(result._meta.inputs).length > 0 && (
+                                                                <div className="mt-3">
+                                                                    <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-1 block">Input</span>
+                                                                    <div className="font-mono text-[10px] bg-slate-50 rounded border border-slate-100 p-2 text-slate-600">
+                                                                        {/* @ts-ignore - dynamic data */}
+                                                                        <ExpandableOutput content={JSON.stringify(result._meta.inputs, null, 2)} />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Output Preview */}
+                                                            {result.output && (
+                                                                <div className="mt-3">
+                                                                    <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-1 block">Output</span>
+                                                                    <div className="font-mono text-[10px] bg-slate-50 rounded border border-slate-100 p-2 text-slate-600">
+                                                                        <ExpandableOutput content={typeof result.output === 'string' ? result.output : JSON.stringify(result.output, null, 2)} />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Error Message */}
+                                                            {result.error && (
+                                                                <div className="mt-3">
+                                                                    <div className="text-[11px] text-red-600 bg-red-50 p-2 rounded border border-red-100 font-medium break-words flex items-start gap-1.5">
+                                                                        <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                                                                        <span>{result.error}</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-4 text-xs text-slate-400 italic">
+                                                No execution details available
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

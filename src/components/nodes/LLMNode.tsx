@@ -1,20 +1,25 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import { BaseNode } from "./BaseNode";
 import { OutputHandle } from "./OutputHandle";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Maximize2, Minimize2 } from "lucide-react";
 import { NodeProps, Handle, Position, useHandleConnections } from "@xyflow/react";
 
 export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
     const connections = useHandleConnections({ type: 'target', id: 'text-prompt' });
     const isConnected = connections.length > 0;
+    const [isResponseExpanded, setIsResponseExpanded] = useState(false);
 
     const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         if (typeof data.onChange === 'function') {
             data.onChange({ ...data, prompt: e.target.value });
         }
     };
+
+    // Get the AI response from data.output
+    const aiResponse = (data.output as string) || "";
+    const hasResponse = aiResponse.length > 0;
 
     return (
         <BaseNode
@@ -61,18 +66,48 @@ export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
 
                     {data.status === 'error' && (
                         <div className="text-xs text-red-600 bg-red-50 p-3 rounded-md border border-red-100">
-                            Generation failed. Please check inputs and try again.
+                            {(data.error as string) || "Generation failed. Please check inputs and try again."}
                         </div>
                     )}
 
                     {data.status === 'completed' && (
                         <div className="mt-3">
-                            <label className="text-xs font-medium text-slate-500">
-                                AI Response
-                            </label>
-                            <div className="mt-1 w-full rounded-md border bg-slate-50 p-3 text-xs text-slate-500 italic">
-                                Output available in Run History
+                            <div className="flex items-center justify-between mb-1">
+                                <label className="text-xs font-medium text-emerald-600">
+                                    ✓ AI Response
+                                </label>
+                                {hasResponse && aiResponse.length > 150 && (
+                                    <button
+                                        onClick={() => setIsResponseExpanded(!isResponseExpanded)}
+                                        className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                                    >
+                                        {isResponseExpanded ? (
+                                            <>
+                                                <Minimize2 className="w-3 h-3" />
+                                                Show Less
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Maximize2 className="w-3 h-3" />
+                                                Expand
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                             </div>
+                            {hasResponse ? (
+                                <textarea
+                                    value={aiResponse}
+                                    readOnly
+                                    className={`w-full rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs text-slate-700 font-mono resize-none focus:outline-none ${isResponseExpanded ? 'max-h-[300px]' : 'max-h-[120px]'
+                                        }`}
+                                    rows={isResponseExpanded ? 12 : 4}
+                                />
+                            ) : (
+                                <div className="mt-1 w-full rounded-md border bg-slate-50 p-3 text-xs text-slate-500 italic">
+                                    Response will appear here after execution
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -86,3 +121,4 @@ export const LLMNode = memo(({ id, data, selected }: NodeProps) => {
 });
 
 LLMNode.displayName = "LLMNode";
+

@@ -245,15 +245,43 @@ const Flow = () => {
                 body: JSON.stringify({ nodes, edges }),
             });
 
-            if (!response.ok) throw new Error('Failed to trigger workflow');
+            // Get the response data first
             const data = await response.json();
-            if (!data.success) throw new Error(data?.error || 'Failed to trigger workflow');
 
-            console.log('Workflow triggered, Run ID:', data.runId);
+            // Check if response is not ok
+            if (!response.ok) {
+                const errorMsg = data?.error || `Server error (${response.status})`;
+                console.error('❌ Workflow trigger failed:', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            // Check if success flag is false
+            if (!data.success) {
+                const errorMsg = data?.error || 'Failed to trigger workflow';
+                console.error('❌ Workflow trigger failed:', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            console.log('✅ Workflow triggered successfully! Run ID:', data.runId);
             pollRunStatus(data.runId);
 
         } catch (error: any) {
-            console.error(error);
+            console.error('❌ Error in handleRunWorkflow:', error);
+
+            // Show user-friendly error message
+            let errorMessage = 'Failed to start workflow';
+            if (error.message.includes('fetch')) {
+                errorMessage = 'Network error - Is the server running?';
+            } else if (error.message.includes('Prisma')) {
+                errorMessage = 'Database error - Check if DATABASE_URL is configured';
+            } else if (error.message.includes('Trigger')) {
+                errorMessage = 'Trigger.dev error - Is trigger.dev dev running?';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            alert(`❌ Error: ${errorMessage}\n\nCheck the console for details.`);
+
             setIsRunning(false);
             setRunStatus("FAILED");
         }
