@@ -30,7 +30,7 @@ export const validateWorkflow = (nodes: Node[], edges: Edge[]): ValidationResult
         // LLM Node Validation
         if (node.type === 'llm') {
             const promptConnections = edges.filter(
-                e => e.target === node.id && e.targetHandle === 'text-prompt'
+                e => e.target === node.id && (e.targetHandle === 'text-prompt' || e.targetHandle === 'user_message' || e.targetHandle === 'user')
             );
             const hasConnection = promptConnections.length > 0;
             const hasManualInput = !!(node.data.prompt as string)?.trim();
