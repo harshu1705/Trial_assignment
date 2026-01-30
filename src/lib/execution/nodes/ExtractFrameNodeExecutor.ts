@@ -4,7 +4,7 @@ export class ExtractFrameNodeExecutor implements ExecutableNode<Record<string, a
     async execute(input: Record<string, any>, context: ExecutionContext): Promise<Record<string, any>> {
         // In engine.ts, 'input' is a flat merge of node.data and upstream results
         const videoUrl = input.videoUrl as string;
-        const timestamp = (input.timestamp as string) || '00:00:01';
+        const timestamp = (input.timestamp as string) || '50%';
 
         if (!videoUrl) {
             // User feedback
@@ -19,7 +19,7 @@ export class ExtractFrameNodeExecutor implements ExecutableNode<Record<string, a
             const mockFrameUrl = "https://placehold.co/600x400/png?text=Extracted+Frame";
 
             return {
-                frameUrl: mockFrameUrl,
+                imageUrl: mockFrameUrl, // Matches requested output key
                 timestamp: timestamp
             };
 

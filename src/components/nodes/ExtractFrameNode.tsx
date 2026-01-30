@@ -7,7 +7,7 @@ export const ExtractFrameNode: React.FC<{ data: any; id: string }> = ({
   id,
 }) => {
   const { setNodes } = useReactFlow();
-  const [timestamp, setTimestamp] = useState(data.timestamp || '00:00:00');
+  const [timestamp, setTimestamp] = useState(data.timestamp || '50%');
 
   const handleTimestampChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTimestamp = e.target.value;
@@ -31,24 +31,23 @@ export const ExtractFrameNode: React.FC<{ data: any; id: string }> = ({
 
       <div className="space-y-2">
         <label className="block font-medium text-sm text-gray-700">
-          Timestamp (HH:MM:SS)
+          Timestamp (Time or %)
         </label>
         <input
           type="text"
-          placeholder="00:00:05"
+          placeholder="50%"
           value={timestamp}
           onChange={handleTimestampChange}
-          pattern="\d{2}:\d{2}:\d{2}"
           className="w-full border rounded px-3 py-2 text-sm font-mono"
         />
         <p className="text-xs text-gray-500">
-          Enter the exact moment to extract frame from
+          Enter absolute time (00:05) or percentage (50%)
         </p>
       </div>
 
       {/* Handles */}
       <Handle type="target" position={Position.Left} id="video_url" />
-      <Handle type="source" position={Position.Right} id="frame-output" />
+      <Handle type="source" position={Position.Right} id="image_url" />
     </div>
   );
 };
