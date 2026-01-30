@@ -336,6 +336,14 @@ const Flow = () => {
                 fitView
                 deleteKeyCode={["Backspace", "Delete"]}
                 multiSelectionKeyCode={["Control", "Meta"]}
+                defaultEdgeOptions={{
+                    style: {
+                        stroke: '#475569', // slate-600
+                        strokeWidth: 2,
+                        strokeDasharray: '6 4',
+                    },
+                    animated: false,
+                }}
             >
                 <Background />
                 <Controls />
