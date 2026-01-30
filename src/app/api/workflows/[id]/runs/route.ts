@@ -14,15 +14,25 @@ export async function GET(request: Request, context: any) {
             return NextResponse.json({ runs: [] });
         }
 
+        // IMPORTANT: We need dragging to link the Clerk User ID (userId) to our internal User ID
+        const dbUser = await prisma.user.findUnique({
+            where: { clerkId: userId },
+        });
+
+        if (!dbUser) {
+            console.warn("User not found in database for Clerk ID:", userId);
+            return NextResponse.json({ runs: [] });
+        }
+
         // Note: We currently ignore the `id` param because the WorkflowRun model
         // does not link to a Workflow model in this assignment context.
         const params = await context.params;
         const id = params?.id;
 
-        // Fetch runs for the authenticated user
+        // Fetch runs for the authenticated user using INTERNAL DB ID
         const runs = await prisma.workflowRun.findMany({
             where: {
-                userId: userId,
+                userId: dbUser.id, // Correct foreign key usage
             },
             take: 10,
             orderBy: { createdAt: 'desc' },

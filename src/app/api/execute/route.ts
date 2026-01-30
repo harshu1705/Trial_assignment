@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
             const outputPayload = {
                 success: !hasFailure,
                 executionId: context.executionId,
+                scope: 'full', // Explicitly define scope
                 results: results,
                 logs: context.logs
             };
